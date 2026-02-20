@@ -1,0 +1,3611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EasyCrosstabs Analysis Platform</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGRlZnM+CjxsaW5lYXJHcmFkaWVudCBpZD0iZ3JhZEVDIiB4MT0iMCUiIHkxPSIwJSIgeDI9IjEwMCUiIHkyPSIxMDAlIj4KPHN0b3Agb2Zmc2V0PSIwJSIgc3R5bGU9InN0b3AtY29sb3I6IzA2YjZkNDtzdG9wLW9wYWNpdHk6MSIgLz4KPHN0b3Agb2Zmc2V0PSIxMDAlIiBzdHlsZT0ic3RvcC1jb2xvcjojMjJkM2VlO3N0b3Atb3BhY2l0eToxIiAvPgo8L2xpbmVhckdyYWRpZW50Pgo8L2RlZnM+CjxyZWN0IHdpZHRoPSIzMiIgaGVpZ2h0PSIzMiIgZmlsbD0iIzFmMjkzNyIgcng9IjYiLz4KPGxpbmUgeDE9IjE2IiB5MT0iNCIgeDI9IjE2IiB5Mj0iMjgiIHN0cm9rZT0iIzA2YjZkNCIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjMiLz4KPGxpbmUgeDE9IjQiIHkxPSIxNiIgeDI9IjI4IiB5Mj0iMTYiIHN0cm9rZT0iIzA2YjZkNCIgc3Ryb2tlLXdpZHRoPSIxIiBvcGFjaXR5PSIwLjMiLz4KPHBhdGggZD0iTSA2IDggTCAxMyA4IEwgMTMgMTAgTCA4IDEwIEwgOCAxNCBMIDEyIDE0IEwgMTIgMTYgTCA4IDE2IEwgOCAyMiBMIDEzIDIyIEwgMTMgMjQgTCA2IDI0IFoiIGZpbGw9IiMwNmI2ZDQiLz4KPHBhdGggZD0iTSAyNiA4IEwgMTkgOCBMIDE5IDI0IEwgMjYgMjQgTCAyNiAyMiBMIDIxIDIyIEwgMjEgMTAgTCAyNiAxMCBaIiBmaWxsPSIjMjJkM2VlIi8+CjxjaXJjbGUgY3g9IjE2IiBjeT0iMTYiIHI9IjIiIGZpbGw9InVybCgjZ3JhZEVDKSIvPgo8Y2lyY2xlIGN4PSIxNiIgY3k9IjE2IiByPSIwLjgiIGZpbGw9IndoaXRlIi8+Cjwvc3ZnPgo=">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  
+  <script type="text/babel">
+/*
+ * EasyCrosstabs Analysis Platform
+ * Copyright (c) 2026 Zach Capers. All rights reserved.
+ * 
+ * This is the CLEAN, UNMINIFIED version for development and updates.
+ * DO NOT distribute this version - use the protected version instead.
+ * 
+ * For licensing inquiries, visit: easycrosstabs.com
+ */
+
+    const { useState, useRef, useEffect } = React;
+
+
+// DEMO VERSION FLAG - Set to true for website demo
+const IS_DEMO_VERSION = true; // Set to true when building website demo
+
+// Demo ice cream survey data - embedded for instant demo experience (500 responses)
+const DEMO_CSV_DATA = `Age,Region,Favorite Flavor,Ice Cream Purchase Frequency,Preferred Shop Type,Topping Preference,Seasonal Preference,Cone Or Cup
+18-24,Northeast,Cookie dough,Multiple times per week,Local shop,Sprinkles,Mostly summer,No preference
+25-34,Midwest,Chocolate,Weekly,Local shop,Nuts,Summer only,Cone
+35-44,Midwest,Vanilla,Every other week,Grocery store,Sprinkles,Mostly summer,Cone
+45-54,South,Vanilla,Multiple times per week,Grocery store,Sprinkles,Summer only,Cone
+55-64,South,Rocky road,A few times per year,Chain store,Caramel,Summer only,Cone
+35-44,South,Mint chocolate chip,Multiple times per week,Local shop,Hot fudge,Mostly summer,No preference
+25-34,Northeast,Mint chocolate chip,Every other week,Grocery store,Hot fudge,Year round,Cone
+35-44,Northeast,Mint chocolate chip,Weekly,Food truck,Hot fudge,Year round,Cone
+55-64,West,Cookie dough,Weekly,Grocery store,Hot fudge,Mostly summer,No preference
+45-54,South,Chocolate,A few times per year,Chain store,No topping,Year round,Cup
+45-54,Midwest,Chocolate,Weekly,Food truck,Nuts,Summer only,Cup
+55-64,Midwest,Vanilla,A few times per year,Local shop,Caramel,Summer only,Cone
+18-24,West,Cookie dough,Multiple times per week,Chain store,Sprinkles,Year round,Cup
+45-54,South,Butter pecan,A few times per year,Local shop,No topping,Summer only,No preference
+35-44,South,Chocolate,Every other week,Chain store,No topping,Mostly summer,Cone
+55-64,West,Mint chocolate chip,Every other week,Food truck,No topping,Year round,Cone
+35-44,West,Mint chocolate chip,Multiple times per week,Chain store,Sprinkles,Year round,Cup
+18-24,South,Cookies and cream,Multiple times per week,Chain store,Sprinkles,Summer only,Cup
+18-24,Northeast,Cookie dough,Multiple times per week,Grocery store,Nuts,Mostly summer,Cone
+45-54,West,Vanilla,A few times per year,Chain store,Hot fudge,Mostly summer,No preference
+25-34,South,Mint chocolate chip,Every other week,Chain store,Nuts,Year round,Cone
+18-24,South,Chocolate,Every other week,Chain store,Sprinkles,Summer only,Cup
+25-34,Northeast,Cookies and cream,Multiple times per week,Local shop,Hot fudge,Summer only,Cone
+55-64,West,Cookies and cream,A few times per year,Chain store,Hot fudge,Mostly summer,No preference
+25-34,Northeast,Chocolate,Every other week,Chain store,Caramel,Mostly summer,Cone
+18-24,Northeast,Mint chocolate chip,Every other week,Grocery store,Hot fudge,Summer only,Cup
+25-34,Midwest,Chocolate,Every other week,Grocery store,Sprinkles,Year round,No preference
+55-64,Northeast,Chocolate,A few times per year,Grocery store,Sprinkles,Mostly summer,No preference
+25-34,Midwest,Mint chocolate chip,Weekly,Chain store,Sprinkles,Summer only,Cone
+45-54,South,Butter pecan,Multiple times per week,Chain store,No topping,Mostly summer,No preference
+55-64,Midwest,Vanilla,Every other week,Grocery store,Nuts,Mostly summer,Cone
+35-44,Northeast,Chocolate,Every other week,Grocery store,Nuts,Summer only,No preference
+18-24,West,Chocolate,Multiple times per week,Grocery store,Caramel,Summer only,No preference
+25-34,Northeast,Cookie dough,Every other week,Chain store,Nuts,Year round,Cone
+35-44,West,Vanilla,Weekly,Food truck,Caramel,Year round,No preference
+18-24,Northeast,Mint chocolate chip,A few times per year,Grocery store,Sprinkles,Year round,Cup
+25-34,South,Cookies and cream,Multiple times per week,Chain store,Hot fudge,Year round,Cup
+35-44,Northeast,Cookie dough,Multiple times per week,Grocery store,Sprinkles,Mostly summer,Cone
+18-24,Northeast,Cookie dough,Weekly,Chain store,Hot fudge,Mostly summer,Cone
+35-44,Midwest,Vanilla,A few times per year,Local shop,No topping,Year round,Cone
+18-24,South,Cookies and cream,Every other week,Chain store,No topping,Year round,Cup
+55-64,Northeast,Chocolate,A few times per year,Food truck,Hot fudge,Year round,No preference
+55-64,West,Strawberry,Weekly,Chain store,Sprinkles,Mostly summer,Cone
+25-34,Northeast,Strawberry,Every other week,Grocery store,Nuts,Mostly summer,No preference
+25-34,West,Butter pecan,Multiple times per week,Grocery store,Sprinkles,Summer only,No preference
+45-54,West,Vanilla,Multiple times per week,Local shop,Sprinkles,Mostly summer,Cone
+45-54,South,Vanilla,Multiple times per week,Local shop,Sprinkles,Mostly summer,Cup
+35-44,Northeast,Butter pecan,Every other week,Food truck,Caramel,Mostly summer,No preference
+35-44,Northeast,Chocolate,A few times per year,Local shop,Whipped cream,Summer only,Cup
+35-44,South,Strawberry,A few times per year,Local shop,Nuts,Summer only,Cone
+45-54,Northeast,Mint chocolate chip,Multiple times per week,Food truck,No topping,Mostly summer,Cone
+45-54,Northeast,Butter pecan,A few times per year,Food truck,No topping,Mostly summer,Cup
+35-44,South,Cookie dough,Every other week,Food truck,Nuts,Summer only,Cup
+45-54,West,Mint chocolate chip,Every other week,Chain store,Sprinkles,Year round,Cone
+55-64,South,Strawberry,Multiple times per week,Local shop,Caramel,Mostly summer,No preference
+25-34,Northeast,Vanilla,Every other week,Food truck,Sprinkles,Mostly summer,Cup
+35-44,West,Rocky road,Weekly,Local shop,Caramel,Year round,No preference
+45-54,Midwest,Rocky road,Multiple times per week,Food truck,Caramel,Year round,Cone
+18-24,Northeast,Cookies and cream,Weekly,Grocery store,No topping,Year round,Cone
+25-34,Northeast,Mint chocolate chip,Multiple times per week,Food truck,Nuts,Year round,No preference
+45-54,Midwest,Rocky road,Multiple times per week,Grocery store,No topping,Mostly summer,Cup
+25-34,South,Cookies and cream,Every other week,Food truck,Whipped cream,Year round,Cup
+25-34,South,Strawberry,Multiple times per week,Local shop,Hot fudge,Summer only,Cup
+25-34,Northeast,Mint chocolate chip,Every other week,Chain store,Sprinkles,Summer only,Cone
+55-64,Northeast,Rocky road,A few times per year,Chain store,Sprinkles,Mostly summer,Cup
+45-54,Midwest,Mint chocolate chip,Multiple times per week,Grocery store,Hot fudge,Year round,Cone
+45-54,Northeast,Vanilla,Multiple times per week,Grocery store,No topping,Summer only,Cup
+25-34,Northeast,Cookies and cream,Every other week,Food truck,Sprinkles,Year round,Cone
+45-54,West,Chocolate,Every other week,Local shop,Whipped cream,Year round,No preference
+35-44,Midwest,Vanilla,Weekly,Local shop,Nuts,Summer only,No preference
+25-34,Northeast,Cookies and cream,Every other week,Grocery store,Hot fudge,Summer only,Cone
+25-34,West,Chocolate,Every other week,Chain store,Hot fudge,Year round,Cone
+35-44,West,Mint chocolate chip,A few times per year,Food truck,Hot fudge,Mostly summer,Cone
+18-24,South,Cookie dough,Multiple times per week,Chain store,No topping,Summer only,Cup
+25-34,Northeast,Cookie dough,Weekly,Food truck,Sprinkles,Mostly summer,Cup
+18-24,South,Mint chocolate chip,Every other week,Local shop,No topping,Year round,No preference
+45-54,Northeast,Strawberry,Every other week,Grocery store,Caramel,Mostly summer,Cup
+55-64,South,Mint chocolate chip,A few times per year,Grocery store,Caramel,Year round,Cup
+35-44,South,Rocky road,A few times per year,Local shop,Caramel,Summer only,Cup
+55-64,Midwest,Vanilla,Multiple times per week,Chain store,Caramel,Summer only,No preference
+35-44,South,Rocky road,Multiple times per week,Chain store,Sprinkles,Year round,Cone
+25-34,Midwest,Mint chocolate chip,Multiple times per week,Food truck,No topping,Mostly summer,Cone
+18-24,Northeast,Vanilla,Every other week,Local shop,No topping,Year round,Cone
+55-64,South,Strawberry,A few times per year,Chain store,No topping,Year round,Cup
+25-34,Northeast,Cookie dough,Weekly,Food truck,No topping,Summer only,Cone
+45-54,South,Cookies and cream,A few times per year,Chain store,Whipped cream,Mostly summer,No preference
+35-44,West,Vanilla,Every other week,Food truck,Hot fudge,Summer only,No preference
+55-64,South,Cookie dough,Every other week,Grocery store,Caramel,Summer only,Cone
+35-44,Midwest,Strawberry,Every other week,Grocery store,Whipped cream,Mostly summer,Cup
+18-24,Midwest,Mint chocolate chip,Every other week,Food truck,Hot fudge,Summer only,Cup
+35-44,Northeast,Butter pecan,Weekly,Grocery store,Nuts,Year round,Cup
+55-64,Midwest,Strawberry,Multiple times per week,Grocery store,Caramel,Year round,Cup
+55-64,Northeast,Butter pecan,Every other week,Local shop,No topping,Summer only,Cone
+55-64,Northeast,Vanilla,Multiple times per week,Food truck,Caramel,Summer only,Cone
+35-44,Midwest,Chocolate,Every other week,Chain store,No topping,Year round,No preference
+25-34,Midwest,Chocolate,Weekly,Local shop,Whipped cream,Mostly summer,Cone
+25-34,South,Cookie dough,Multiple times per week,Grocery store,Caramel,Summer only,Cup
+45-54,South,Mint chocolate chip,Multiple times per week,Local shop,Sprinkles,Mostly summer,Cup
+55-64,South,Chocolate,Every other week,Food truck,Nuts,Year round,Cone
+35-44,Northeast,Cookies and cream,Weekly,Chain store,Caramel,Mostly summer,Cone
+55-64,Midwest,Cookie dough,Multiple times per week,Local shop,Whipped cream,Year round,Cup
+18-24,West,Strawberry,Monthly,Chain store,Caramel,Mostly summer,Cup
+45-54,Northeast,Vanilla,Every other week,Grocery store,Caramel,Mostly summer,No preference
+18-24,Midwest,Mint chocolate chip,Weekly,Chain store,Caramel,Year round,Cup
+25-34,South,Mint chocolate chip,Monthly,Chain store,No topping,Year round,Cone
+55-64,West,Cookies and cream,Every other week,Local shop,Caramel,Summer only,No preference
+18-24,Midwest,Rocky road,Every other week,Local shop,No topping,Summer only,Cup
+45-54,Midwest,Butter pecan,Every other week,Chain store,Caramel,Summer only,Cup
+25-34,Northeast,Vanilla,Monthly,Chain store,Nuts,Summer only,Cone
+35-44,Midwest,Rocky road,Every other week,Chain store,Whipped cream,Year round,Cup
+45-54,South,Rocky road,A few times per year,Local shop,Caramel,Summer only,No preference
+18-24,South,Cookie dough,Monthly,Grocery store,Caramel,Mostly summer,Cup
+25-34,Midwest,Butter pecan,Weekly,Grocery store,Whipped cream,Mostly summer,No preference
+45-54,Northeast,Mint chocolate chip,Every other week,Food truck,Caramel,Mostly summer,No preference
+18-24,Midwest,Cookies and cream,Weekly,Food truck,Caramel,Year round,No preference
+55-64,Midwest,Butter pecan,Monthly,Grocery store,Caramel,Mostly summer,Cone
+18-24,West,Cookie dough,Monthly,Grocery store,No topping,Summer only,No preference
+18-24,Midwest,Chocolate,Weekly,Local shop,Whipped cream,Mostly summer,Cone
+35-44,Midwest,Chocolate,Monthly,Chain store,Hot fudge,Summer only,Cone
+45-54,West,Strawberry,Monthly,Local shop,No topping,Summer only,Cone
+18-24,Midwest,Cookies and cream,Every other week,Local shop,Caramel,Mostly summer,No preference
+35-44,Midwest,Cookie dough,Every other week,Chain store,Caramel,Mostly summer,Cone
+45-54,South,Mint chocolate chip,A few times per year,Chain store,No topping,Year round,Cone
+18-24,Midwest,Cookies and cream,Monthly,Grocery store,Hot fudge,Year round,Cone
+25-34,South,Cookie dough,Monthly,Food truck,Hot fudge,Year round,No preference
+18-24,South,Cookies and cream,Multiple times per week,Chain store,Hot fudge,Summer only,Cone
+45-54,West,Vanilla,Monthly,Grocery store,Whipped cream,Year round,No preference
+25-34,South,Rocky road,A few times per year,Grocery store,Whipped cream,Mostly summer,Cone
+18-24,Midwest,Butter pecan,Weekly,Grocery store,No topping,Mostly summer,No preference
+55-64,South,Chocolate,Monthly,Chain store,Sprinkles,Year round,Cup
+35-44,Midwest,Rocky road,A few times per year,Local shop,Hot fudge,Year round,Cup
+55-64,South,Butter pecan,Every other week,Local shop,Caramel,Mostly summer,Cup
+45-54,Northeast,Chocolate,A few times per year,Chain store,Caramel,Summer only,Cone
+55-64,West,Vanilla,Monthly,Grocery store,No topping,Mostly summer,Cup
+25-34,Midwest,Cookie dough,Monthly,Food truck,Whipped cream,Summer only,Cone
+45-54,Midwest,Butter pecan,A few times per year,Local shop,No topping,Year round,No preference
+35-44,Northeast,Vanilla,Every other week,Local shop,Caramel,Summer only,Cone
+55-64,Northeast,Chocolate,Every other week,Grocery store,Nuts,Summer only,No preference
+55-64,West,Mint chocolate chip,A few times per year,Local shop,Hot fudge,Mostly summer,Cup
+35-44,West,Butter pecan,Monthly,Grocery store,Sprinkles,Mostly summer,Cone
+18-24,South,Cookies and cream,Weekly,Chain store,Hot fudge,Summer only,Cone
+45-54,Northeast,Cookies and cream,Every other week,Grocery store,Nuts,Year round,Cup
+25-34,Northeast,Cookie dough,Monthly,Food truck,Whipped cream,Year round,No preference
+18-24,Midwest,Cookies and cream,Every other week,Local shop,No topping,Mostly summer,Cone
+18-24,South,Cookie dough,Multiple times per week,Chain store,No topping,Year round,Cup
+45-54,South,Strawberry,Monthly,Local shop,No topping,Summer only,Cup
+55-64,West,Strawberry,A few times per year,Chain store,Caramel,Year round,Cup
+35-44,Midwest,Vanilla,Every other week,Grocery store,No topping,Mostly summer,Cone
+18-24,Northeast,Mint chocolate chip,Monthly,Chain store,Hot fudge,Year round,Cup
+55-64,South,Cookie dough,Monthly,Grocery store,Caramel,Mostly summer,Cup
+35-44,South,Vanilla,Monthly,Local shop,No topping,Year round,No preference
+35-44,South,Chocolate,Every other week,Local shop,Caramel,Mostly summer,No preference
+55-64,Northeast,Mint chocolate chip,Monthly,Food truck,Sprinkles,Summer only,Cup
+35-44,South,Vanilla,Every other week,Local shop,No topping,Year round,Cone
+18-24,Northeast,Cookie dough,Weekly,Chain store,Whipped cream,Summer only,Cone
+35-44,Northeast,Rocky road,Weekly,Grocery store,Sprinkles,Mostly summer,Cone
+45-54,Midwest,Mint chocolate chip,Every other week,Local shop,Nuts,Summer only,Cup
+35-44,Midwest,Mint chocolate chip,Every other week,Local shop,Nuts,Summer only,Cone
+25-34,West,Cookies and cream,Weekly,Local shop,Caramel,Mostly summer,Cone
+45-54,West,Mint chocolate chip,A few times per year,Grocery store,Sprinkles,Year round,Cup
+45-54,Northeast,Strawberry,Weekly,Chain store,Caramel,Year round,Cup
+45-54,South,Chocolate,Multiple times per week,Chain store,Nuts,Year round,Cup
+35-44,Northeast,Strawberry,Weekly,Chain store,Caramel,Year round,Cup
+35-44,South,Vanilla,Monthly,Local shop,No topping,Summer only,Cup
+35-44,South,Cookies and cream,Monthly,Grocery store,Hot fudge,Summer only,Cone
+25-34,West,Cookies and cream,Every other week,Local shop,No topping,Year round,Cup
+55-64,Midwest,Cookie dough,A few times per year,Food truck,Nuts,Year round,No preference
+35-44,West,Strawberry,Every other week,Food truck,Whipped cream,Year round,Cup
+18-24,South,Mint chocolate chip,Multiple times per week,Chain store,Whipped cream,Summer only,No preference
+18-24,Midwest,Mint chocolate chip,Every other week,Grocery store,Sprinkles,Year round,No preference
+25-34,South,Cookie dough,Every other week,Grocery store,Caramel,Summer only,No preference
+35-44,Northeast,Mint chocolate chip,Weekly,Local shop,Caramel,Mostly summer,Cup
+55-64,West,Vanilla,A few times per year,Chain store,Whipped cream,Mostly summer,Cone
+35-44,Northeast,Vanilla,Monthly,Chain store,Whipped cream,Mostly summer,Cup
+55-64,West,Vanilla,Monthly,Local shop,Whipped cream,Year round,Cup
+45-54,West,Mint chocolate chip,A few times per year,Chain store,Caramel,Year round,Cone
+25-34,Northeast,Cookie dough,Every other week,Chain store,Whipped cream,Year round,No preference
+35-44,Midwest,Vanilla,A few times per year,Local shop,Whipped cream,Mostly summer,Cone
+55-64,Northeast,Cookie dough,A few times per year,Food truck,Nuts,Year round,Cone
+55-64,West,Cookies and cream,Weekly,Chain store,No topping,Summer only,Cup
+35-44,Midwest,Vanilla,Every other week,Grocery store,Caramel,Mostly summer,Cone
+55-64,Midwest,Strawberry,Every other week,Chain store,Nuts,Year round,Cone
+25-34,West,Cookies and cream,Multiple times per week,Chain store,Whipped cream,Year round,Cone
+55-64,Northeast,Vanilla,A few times per year,Chain store,Nuts,Summer only,Cup
+25-34,Midwest,Cookies and cream,A few times per year,Chain store,Caramel,Year round,Cone
+18-24,South,Vanilla,Weekly,Local shop,No topping,Year round,Cup
+25-34,Northeast,Vanilla,Monthly,Food truck,Hot fudge,Mostly summer,Cone
+55-64,Northeast,Butter pecan,Weekly,Local shop,Hot fudge,Year round,Cup
+55-64,Midwest,Chocolate,Every other week,Chain store,Sprinkles,Summer only,Cup
+55-64,Midwest,Chocolate,A few times per year,Chain store,Nuts,Summer only,Cup
+25-34,West,Vanilla,Multiple times per week,Chain store,Nuts,Year round,Cup
+18-24,South,Chocolate,Every other week,Chain store,Nuts,Year round,Cone
+45-54,Northeast,Cookie dough,A few times per year,Chain store,Sprinkles,Year round,Cone
+25-34,Northeast,Cookies and cream,Monthly,Chain store,Sprinkles,Year round,Cone
+25-34,Midwest,Butter pecan,Every other week,Local shop,Hot fudge,Summer only,Cup
+45-54,Northeast,Vanilla,Weekly,Local shop,Sprinkles,Year round,Cone
+45-54,Midwest,Vanilla,Monthly,Local shop,Whipped cream,Mostly summer,Cone
+35-44,South,Chocolate,Every other week,Grocery store,No topping,Year round,No preference
+35-44,West,Strawberry,Monthly,Grocery store,Nuts,Summer only,Cone
+45-54,Northeast,Strawberry,A few times per year,Local shop,Whipped cream,Year round,Cone
+35-44,South,Strawberry,Monthly,Local shop,Caramel,Year round,Cone
+35-44,Midwest,Vanilla,A few times per year,Grocery store,Sprinkles,Mostly summer,Cup
+55-64,West,Butter pecan,Every other week,Food truck,Caramel,Summer only,Cone
+35-44,South,Vanilla,Monthly,Food truck,No topping,Year round,Cup
+45-54,Northeast,Mint chocolate chip,Monthly,Chain store,No topping,Summer only,No preference
+18-24,West,Mint chocolate chip,Every other week,Chain store,Whipped cream,Mostly summer,Cup
+25-34,South,Cookie dough,A few times per year,Local shop,Hot fudge,Mostly summer,Cone
+45-54,Northeast,Rocky road,A few times per year,Grocery store,No topping,Year round,Cone
+55-64,South,Rocky road,A few times per year,Food truck,No topping,Year round,No preference
+55-64,West,Chocolate,Every other week,Local shop,Caramel,Summer only,Cup
+35-44,Midwest,Rocky road,Monthly,Food truck,Sprinkles,Summer only,Cup
+45-54,Midwest,Cookies and cream,Monthly,Local shop,Whipped cream,Year round,Cup
+55-64,South,Chocolate,A few times per year,Chain store,Nuts,Summer only,No preference
+45-54,Northeast,Rocky road,Monthly,Chain store,Hot fudge,Year round,Cup
+35-44,South,Rocky road,Every other week,Food truck,Nuts,Summer only,Cup
+55-64,Northeast,Mint chocolate chip,Every other week,Grocery store,Hot fudge,Summer only,Cup
+55-64,South,Rocky road,Monthly,Grocery store,Sprinkles,Summer only,No preference
+55-64,South,Cookie dough,A few times per year,Chain store,No topping,Summer only,No preference
+55-64,South,Cookie dough,Every other week,Local shop,No topping,Year round,Cup
+18-24,West,Mint chocolate chip,Every other week,Local shop,Nuts,Summer only,No preference
+35-44,South,Butter pecan,Weekly,Chain store,Nuts,Summer only,Cone
+18-24,South,Mint chocolate chip,Weekly,Local shop,Caramel,Mostly summer,Cone
+25-34,South,Rocky road,Monthly,Local shop,Hot fudge,Year round,Cup
+45-54,South,Strawberry,Weekly,Chain store,Caramel,Mostly summer,Cone
+35-44,Northeast,Chocolate,Monthly,Grocery store,No topping,Mostly summer,Cone
+18-24,Northeast,Mint chocolate chip,Monthly,Food truck,Caramel,Year round,Cone
+55-64,West,Vanilla,Every other week,Chain store,Caramel,Mostly summer,Cup
+55-64,Northeast,Chocolate,Every other week,Chain store,Whipped cream,Year round,Cup
+25-34,West,Cookie dough,Every other week,Local shop,Sprinkles,Summer only,Cone
+45-54,Midwest,Chocolate,A few times per year,Local shop,Nuts,Year round,Cup
+55-64,South,Mint chocolate chip,Monthly,Chain store,Caramel,Mostly summer,Cup
+18-24,South,Strawberry,Weekly,Chain store,Whipped cream,Mostly summer,Cup
+18-24,Midwest,Vanilla,Every other week,Grocery store,Nuts,Year round,Cup
+55-64,Midwest,Vanilla,Monthly,Food truck,Caramel,Summer only,Cup
+18-24,Northeast,Chocolate,Every other week,Chain store,Caramel,Mostly summer,Cone
+55-64,Midwest,Rocky road,Monthly,Local shop,Hot fudge,Year round,Cup
+45-54,Midwest,Vanilla,Weekly,Grocery store,Whipped cream,Year round,Cup
+35-44,Midwest,Vanilla,Every other week,Chain store,Hot fudge,Mostly summer,No preference
+35-44,West,Cookie dough,Monthly,Chain store,Nuts,Mostly summer,No preference
+35-44,South,Chocolate,Monthly,Chain store,Caramel,Mostly summer,No preference
+25-34,South,Chocolate,A few times per year,Local shop,Caramel,Mostly summer,Cup
+25-34,West,Cookies and cream,Weekly,Chain store,Whipped cream,Summer only,Cup
+55-64,West,Vanilla,Monthly,Chain store,No topping,Summer only,Cone
+35-44,Midwest,Chocolate,Monthly,Local shop,Nuts,Mostly summer,Cone
+45-54,Midwest,Cookie dough,Monthly,Chain store,Whipped cream,Year round,No preference
+18-24,West,Mint chocolate chip,Monthly,Grocery store,Hot fudge,Year round,No preference
+18-24,Midwest,Cookies and cream,Weekly,Food truck,Whipped cream,Mostly summer,Cone
+55-64,Northeast,Butter pecan,Every other week,Chain store,No topping,Year round,Cup
+25-34,Midwest,Vanilla,Monthly,Chain store,No topping,Year round,Cone
+25-34,Northeast,Cookie dough,Monthly,Chain store,Hot fudge,Summer only,No preference
+45-54,Midwest,Mint chocolate chip,Weekly,Food truck,Hot fudge,Mostly summer,Cup
+25-34,Northeast,Vanilla,Weekly,Grocery store,Whipped cream,Year round,Cup
+18-24,South,Cookie dough,Monthly,Local shop,Sprinkles,Year round,Cone
+55-64,South,Cookie dough,Monthly,Grocery store,Whipped cream,Year round,Cone
+25-34,Midwest,Chocolate,Monthly,Food truck,Caramel,Mostly summer,No preference
+55-64,West,Cookies and cream,Monthly,Chain store,Sprinkles,Year round,Cup
+35-44,Northeast,Butter pecan,Weekly,Grocery store,Nuts,Summer only,Cup
+25-34,South,Cookies and cream,Every other week,Food truck,No topping,Year round,Cone
+55-64,Midwest,Rocky road,Monthly,Chain store,Caramel,Year round,Cup
+35-44,Northeast,Vanilla,Monthly,Food truck,Nuts,Summer only,Cup
+18-24,Northeast,Rocky road,Multiple times per week,Grocery store,Sprinkles,Summer only,Cone
+25-34,Midwest,Strawberry,Monthly,Chain store,Caramel,Year round,Cup
+55-64,West,Cookie dough,Monthly,Local shop,Nuts,Year round,Cone
+25-34,Northeast,Cookie dough,A few times per year,Chain store,No topping,Year round,Cup
+25-34,West,Mint chocolate chip,Weekly,Local shop,No topping,Mostly summer,Cone
+45-54,Northeast,Vanilla,Weekly,Chain store,Caramel,Year round,Cup
+18-24,West,Cookie dough,Every other week,Local shop,Hot fudge,Mostly summer,Cup
+25-34,South,Vanilla,Monthly,Chain store,Nuts,Year round,Cup
+35-44,West,Vanilla,Weekly,Food truck,Hot fudge,Year round,Cone
+55-64,West,Cookie dough,Monthly,Chain store,Whipped cream,Mostly summer,Cup
+55-64,South,Cookie dough,Monthly,Chain store,Hot fudge,Mostly summer,Cup
+25-34,South,Cookies and cream,Weekly,Chain store,Sprinkles,Year round,No preference
+55-64,West,Vanilla,Every other week,Chain store,Sprinkles,Mostly summer,No preference
+18-24,West,Chocolate,Every other week,Food truck,Sprinkles,Mostly summer,Cone
+55-64,West,Strawberry,A few times per year,Chain store,Sprinkles,Summer only,Cone
+18-24,Midwest,Rocky road,Monthly,Food truck,Caramel,Mostly summer,Cup
+35-44,Midwest,Strawberry,Monthly,Chain store,Whipped cream,Year round,Cup
+18-24,Midwest,Cookies and cream,Weekly,Local shop,Whipped cream,Year round,Cup
+25-34,West,Chocolate,Every other week,Chain store,No topping,Year round,Cone
+35-44,West,Vanilla,A few times per year,Chain store,No topping,Mostly summer,Cone
+45-54,Midwest,Strawberry,Monthly,Chain store,Hot fudge,Mostly summer,Cup
+55-64,Northeast,Mint chocolate chip,A few times per year,Local shop,No topping,Summer only,Cone
+25-34,West,Chocolate,Weekly,Local shop,Caramel,Year round,Cup
+55-64,Midwest,Cookie dough,Weekly,Chain store,Caramel,Summer only,Cup
+35-44,South,Chocolate,Monthly,Food truck,Hot fudge,Summer only,Cone
+25-34,West,Chocolate,Every other week,Grocery store,Whipped cream,Mostly summer,Cone
+45-54,Midwest,Mint chocolate chip,A few times per year,Local shop,No topping,Mostly summer,Cone
+18-24,Northeast,Mint chocolate chip,Every other week,Chain store,No topping,Summer only,Cone
+45-54,Midwest,Cookie dough,Every other week,Grocery store,Sprinkles,Mostly summer,No preference
+25-34,West,Cookies and cream,Monthly,Chain store,Whipped cream,Summer only,Cone
+35-44,Northeast,Vanilla,A few times per year,Local shop,Hot fudge,Year round,No preference
+45-54,Northeast,Vanilla,Monthly,Chain store,Caramel,Mostly summer,Cup
+45-54,West,Rocky road,Monthly,Local shop,No topping,Mostly summer,Cone
+45-54,West,Rocky road,Every other week,Grocery store,Nuts,Year round,No preference
+18-24,South,Cookies and cream,Every other week,Local shop,Nuts,Mostly summer,Cone
+55-64,Midwest,Chocolate,Monthly,Grocery store,No topping,Summer only,Cup
+45-54,West,Cookies and cream,Every other week,Local shop,Sprinkles,Mostly summer,Cup
+35-44,Northeast,Chocolate,Every other week,Chain store,Nuts,Year round,Cone
+18-24,South,Mint chocolate chip,Every other week,Grocery store,Caramel,Summer only,Cone
+18-24,West,Cookie dough,Weekly,Chain store,Hot fudge,Summer only,Cone
+25-34,Northeast,Chocolate,Weekly,Chain store,Sprinkles,Year round,No preference
+45-54,West,Strawberry,Weekly,Local shop,Caramel,Year round,Cup
+35-44,Midwest,Vanilla,Monthly,Grocery store,Nuts,Summer only,Cone
+25-34,Midwest,Strawberry,A few times per year,Grocery store,Whipped cream,Mostly summer,Cup
+55-64,West,Vanilla,Every other week,Grocery store,Whipped cream,Summer only,Cup
+55-64,West,Cookie dough,Monthly,Grocery store,Caramel,Mostly summer,Cone
+35-44,Northeast,Rocky road,Monthly,Chain store,Caramel,Summer only,Cone
+35-44,West,Cookies and cream,Monthly,Local shop,Nuts,Year round,Cup
+55-64,Midwest,Mint chocolate chip,A few times per year,Chain store,Nuts,Year round,No preference
+18-24,West,Cookie dough,Every other week,Food truck,Sprinkles,Year round,Cup
+45-54,South,Butter pecan,Every other week,Local shop,Whipped cream,Summer only,Cup
+55-64,West,Strawberry,Monthly,Grocery store,Nuts,Mostly summer,Cone
+18-24,Midwest,Chocolate,Every other week,Grocery store,Sprinkles,Mostly summer,Cup
+35-44,South,Vanilla,Monthly,Chain store,Whipped cream,Year round,Cup
+45-54,South,Chocolate,Weekly,Food truck,Sprinkles,Mostly summer,Cup
+25-34,West,Mint chocolate chip,Every other week,Chain store,Caramel,Mostly summer,Cone
+45-54,West,Vanilla,Monthly,Chain store,No topping,Year round,Cone
+55-64,Midwest,Vanilla,Monthly,Local shop,No topping,Mostly summer,Cone
+18-24,West,Strawberry,Weekly,Local shop,No topping,Mostly summer,Cup
+35-44,Midwest,Mint chocolate chip,Monthly,Chain store,Caramel,Year round,No preference
+35-44,Northeast,Cookie dough,Every other week,Local shop,Sprinkles,Summer only,Cup
+55-64,Midwest,Strawberry,Every other week,Chain store,Hot fudge,Year round,Cup
+25-34,West,Mint chocolate chip,Weekly,Chain store,Caramel,Year round,No preference
+18-24,Midwest,Chocolate,Monthly,Grocery store,Nuts,Mostly summer,Cone
+45-54,Midwest,Cookies and cream,Every other week,Local shop,Nuts,Summer only,No preference
+35-44,Northeast,Vanilla,Monthly,Local shop,Caramel,Year round,No preference
+45-54,Northeast,Mint chocolate chip,Every other week,Chain store,Whipped cream,Year round,No preference
+45-54,West,Butter pecan,Weekly,Grocery store,Hot fudge,Summer only,No preference
+45-54,South,Vanilla,Monthly,Chain store,Sprinkles,Mostly summer,Cone
+55-64,South,Rocky road,Monthly,Chain store,Nuts,Summer only,Cone
+25-34,Northeast,Cookie dough,Every other week,Chain store,Hot fudge,Year round,Cup
+35-44,South,Butter pecan,Monthly,Grocery store,Sprinkles,Summer only,No preference
+45-54,Northeast,Butter pecan,A few times per year,Local shop,Hot fudge,Summer only,Cup
+25-34,Midwest,Mint chocolate chip,Every other week,Chain store,Caramel,Year round,Cone
+18-24,Midwest,Mint chocolate chip,Weekly,Grocery store,Whipped cream,Year round,Cone
+55-64,Northeast,Rocky road,A few times per year,Local shop,Caramel,Year round,Cup
+18-24,Midwest,Vanilla,Every other week,Local shop,Whipped cream,Year round,Cone
+55-64,West,Mint chocolate chip,Monthly,Chain store,No topping,Mostly summer,Cone
+45-54,Northeast,Chocolate,A few times per year,Chain store,Sprinkles,Mostly summer,Cup
+25-34,South,Chocolate,A few times per year,Chain store,No topping,Year round,Cone
+25-34,Northeast,Mint chocolate chip,Weekly,Food truck,Hot fudge,Year round,Cone
+18-24,Northeast,Vanilla,Multiple times per week,Chain store,Nuts,Mostly summer,Cone
+35-44,Northeast,Butter pecan,Every other week,Local shop,Sprinkles,Summer only,Cone
+18-24,Northeast,Strawberry,Monthly,Local shop,Hot fudge,Year round,Cup
+18-24,Northeast,Cookie dough,Weekly,Chain store,Hot fudge,Year round,Cone
+45-54,Midwest,Rocky road,Weekly,Local shop,Sprinkles,Year round,Cup
+45-54,South,Rocky road,Every other week,Food truck,Hot fudge,Year round,Cup
+55-64,South,Cookies and cream,Monthly,Grocery store,No topping,Mostly summer,Cone
+55-64,West,Cookies and cream,Every other week,Local shop,Hot fudge,Year round,Cone
+45-54,Northeast,Mint chocolate chip,A few times per year,Grocery store,Whipped cream,Summer only,No preference
+55-64,Midwest,Vanilla,Monthly,Grocery store,Sprinkles,Summer only,Cone
+35-44,West,Chocolate,Weekly,Grocery store,Nuts,Summer only,Cup
+45-54,Midwest,Cookies and cream,Weekly,Chain store,Nuts,Summer only,Cone
+18-24,West,Butter pecan,Weekly,Chain store,Nuts,Year round,No preference
+18-24,South,Cookie dough,Monthly,Grocery store,Sprinkles,Summer only,No preference
+18-24,Midwest,Cookie dough,Multiple times per week,Food truck,No topping,Mostly summer,Cone
+25-34,Northeast,Chocolate,A few times per year,Chain store,No topping,Summer only,Cone
+35-44,Northeast,Cookies and cream,Multiple times per week,Grocery store,Whipped cream,Year round,Cone
+55-64,Northeast,Strawberry,Monthly,Local shop,Nuts,Summer only,Cone
+18-24,Northeast,Vanilla,Every other week,Local shop,Sprinkles,Summer only,Cone
+45-54,West,Vanilla,A few times per year,Local shop,No topping,Mostly summer,Cup
+35-44,West,Strawberry,Monthly,Chain store,Sprinkles,Year round,Cone
+18-24,West,Vanilla,Every other week,Local shop,Caramel,Summer only,Cone
+35-44,South,Vanilla,Monthly,Local shop,Hot fudge,Summer only,No preference
+55-64,West,Strawberry,Monthly,Chain store,Hot fudge,Mostly summer,Cup
+25-34,West,Chocolate,Every other week,Local shop,Whipped cream,Year round,Cup
+18-24,South,Chocolate,Every other week,Grocery store,No topping,Year round,Cone
+25-34,Midwest,Mint chocolate chip,Multiple times per week,Grocery store,No topping,Summer only,Cone
+25-34,Midwest,Cookie dough,Every other week,Grocery store,Sprinkles,Year round,Cup
+45-54,Northeast,Mint chocolate chip,Weekly,Food truck,Hot fudge,Summer only,Cone
+35-44,Midwest,Cookies and cream,Monthly,Chain store,Whipped cream,Summer only,No preference
+25-34,Northeast,Chocolate,Weekly,Chain store,Caramel,Summer only,Cone
+25-34,Midwest,Strawberry,Weekly,Local shop,Hot fudge,Mostly summer,Cone
+55-64,Northeast,Vanilla,A few times per year,Local shop,No topping,Summer only,Cup
+55-64,Northeast,Cookie dough,Every other week,Grocery store,Sprinkles,Mostly summer,No preference
+55-64,West,Chocolate,Every other week,Grocery store,Sprinkles,Summer only,No preference
+25-34,West,Chocolate,Every other week,Food truck,No topping,Summer only,Cup
+18-24,Northeast,Butter pecan,Weekly,Food truck,Hot fudge,Summer only,No preference
+35-44,Northeast,Chocolate,Every other week,Local shop,Nuts,Year round,Cup
+45-54,Northeast,Vanilla,Every other week,Chain store,Hot fudge,Summer only,Cup
+25-34,Northeast,Cookie dough,Every other week,Food truck,Caramel,Year round,Cup
+18-24,Northeast,Vanilla,Weekly,Local shop,Nuts,Summer only,No preference
+55-64,Northeast,Butter pecan,A few times per year,Chain store,Nuts,Mostly summer,Cup
+55-64,South,Vanilla,Every other week,Chain store,Hot fudge,Summer only,No preference
+35-44,Northeast,Rocky road,Every other week,Chain store,Nuts,Mostly summer,No preference
+18-24,West,Cookie dough,Weekly,Grocery store,No topping,Summer only,No preference
+25-34,Midwest,Strawberry,Monthly,Grocery store,Hot fudge,Summer only,Cone
+35-44,Northeast,Cookies and cream,Every other week,Chain store,Hot fudge,Year round,Cone
+45-54,South,Vanilla,Weekly,Local shop,Nuts,Summer only,Cup
+18-24,South,Rocky road,Weekly,Local shop,No topping,Summer only,No preference
+35-44,Northeast,Chocolate,Monthly,Grocery store,Sprinkles,Mostly summer,No preference
+18-24,South,Cookie dough,Every other week,Chain store,Whipped cream,Year round,Cone
+25-34,Midwest,Cookies and cream,A few times per year,Food truck,Hot fudge,Mostly summer,Cup
+55-64,South,Vanilla,Monthly,Local shop,Whipped cream,Mostly summer,Cup
+25-34,Northeast,Rocky road,A few times per year,Chain store,Nuts,Summer only,Cup
+55-64,West,Cookie dough,Every other week,Chain store,Whipped cream,Mostly summer,Cone
+35-44,West,Cookie dough,A few times per year,Grocery store,No topping,Year round,No preference
+45-54,Northeast,Vanilla,Every other week,Local shop,Whipped cream,Mostly summer,Cup
+18-24,Midwest,Mint chocolate chip,Every other week,Local shop,Caramel,Year round,Cone
+55-64,Midwest,Chocolate,Monthly,Grocery store,No topping,Mostly summer,Cone
+45-54,Northeast,Rocky road,Weekly,Local shop,Whipped cream,Mostly summer,Cone
+25-34,Midwest,Chocolate,Multiple times per week,Grocery store,Sprinkles,Year round,No preference
+45-54,Northeast,Strawberry,Monthly,Food truck,Caramel,Summer only,Cone
+25-34,West,Mint chocolate chip,Every other week,Grocery store,Nuts,Summer only,Cone
+25-34,Northeast,Chocolate,Every other week,Grocery store,Hot fudge,Summer only,Cone
+18-24,South,Cookies and cream,Every other week,Chain store,Sprinkles,Summer only,Cone
+35-44,Northeast,Strawberry,Weekly,Grocery store,Caramel,Year round,Cup
+18-24,Midwest,Chocolate,Monthly,Chain store,Caramel,Summer only,Cone
+35-44,West,Rocky road,Monthly,Local shop,No topping,Mostly summer,Cone
+35-44,Midwest,Butter pecan,Monthly,Chain store,Caramel,Mostly summer,Cup
+55-64,Midwest,Mint chocolate chip,Every other week,Chain store,Caramel,Mostly summer,Cup
+55-64,West,Chocolate,A few times per year,Local shop,Hot fudge,Mostly summer,No preference
+25-34,Northeast,Mint chocolate chip,A few times per year,Chain store,No topping,Summer only,Cup
+35-44,Northeast,Chocolate,Monthly,Chain store,Whipped cream,Year round,No preference
+18-24,Midwest,Chocolate,Weekly,Chain store,Nuts,Mostly summer,No preference
+18-24,Northeast,Cookies and cream,Monthly,Grocery store,Caramel,Summer only,Cup
+55-64,Midwest,Chocolate,Every other week,Local shop,Nuts,Mostly summer,Cup
+45-54,South,Cookie dough,Weekly,Chain store,Whipped cream,Mostly summer,Cone
+35-44,South,Vanilla,Monthly,Food truck,Sprinkles,Mostly summer,Cone
+35-44,Midwest,Cookies and cream,Every other week,Food truck,Nuts,Year round,Cone
+25-34,Midwest,Cookie dough,Monthly,Grocery store,Sprinkles,Year round,Cone
+35-44,Midwest,Chocolate,A few times per year,Grocery store,Sprinkles,Summer only,No preference
+25-34,Northeast,Vanilla,Every other week,Grocery store,No topping,Summer only,Cone
+45-54,Midwest,Cookie dough,Weekly,Local shop,Whipped cream,Year round,Cup
+45-54,South,Vanilla,A few times per year,Chain store,No topping,Summer only,Cone
+18-24,West,Cookies and cream,Monthly,Local shop,Hot fudge,Year round,Cup
+35-44,Midwest,Mint chocolate chip,A few times per year,Grocery store,No topping,Summer only,No preference
+25-34,Northeast,Vanilla,Every other week,Grocery store,No topping,Mostly summer,Cup
+45-54,Midwest,Rocky road,Every other week,Local shop,Whipped cream,Mostly summer,No preference
+45-54,Northeast,Chocolate,A few times per year,Grocery store,Whipped cream,Year round,Cup
+35-44,South,Cookie dough,Monthly,Chain store,Whipped cream,Year round,No preference
+35-44,South,Vanilla,Monthly,Local shop,Sprinkles,Mostly summer,No preference
+55-64,Midwest,Cookie dough,Monthly,Food truck,No topping,Year round,Cup
+45-54,Midwest,Vanilla,Weekly,Food truck,Nuts,Mostly summer,Cone
+25-34,Midwest,Cookies and cream,Every other week,Chain store,Hot fudge,Mostly summer,No preference
+25-34,South,Chocolate,Weekly,Chain store,Nuts,Mostly summer,Cone
+35-44,Northeast,Vanilla,Every other week,Grocery store,Caramel,Mostly summer,Cone
+35-44,South,Strawberry,Weekly,Local shop,No topping,Year round,No preference
+18-24,Midwest,Cookies and cream,Every other week,Grocery store,Caramel,Year round,Cone
+25-34,West,Butter pecan,Every other week,Grocery store,Caramel,Summer only,No preference
+25-34,Northeast,Mint chocolate chip,Every other week,Local shop,No topping,Summer only,Cone
+25-34,West,Cookie dough,Weekly,Grocery store,Sprinkles,Summer only,Cone
+45-54,Midwest,Strawberry,Every other week,Local shop,Nuts,Summer only,Cup
+18-24,South,Cookie dough,Every other week,Local shop,Sprinkles,Year round,Cone
+35-44,South,Chocolate,Every other week,Chain store,Hot fudge,Summer only,Cone
+35-44,Midwest,Cookies and cream,Monthly,Chain store,No topping,Mostly summer,Cone
+45-54,South,Cookies and cream,Weekly,Grocery store,Caramel,Summer only,Cone
+25-34,West,Cookie dough,Every other week,Local shop,Whipped cream,Mostly summer,Cup
+45-54,South,Cookies and cream,Monthly,Chain store,Sprinkles,Mostly summer,Cup
+18-24,Northeast,Cookie dough,Every other week,Chain store,Nuts,Summer only,Cup
+25-34,Northeast,Strawberry,Every other week,Food truck,Whipped cream,Year round,Cup
+45-54,Northeast,Mint chocolate chip,Monthly,Chain store,Sprinkles,Year round,Cup
+35-44,West,Vanilla,Every other week,Local shop,Nuts,Year round,Cone
+45-54,South,Vanilla,Multiple times per week,Local shop,Sprinkles,Mostly summer,Cup
+25-34,Northeast,Cookies and cream,Multiple times per week,Food truck,Whipped cream,Year round,Cone
+35-44,South,Strawberry,Weekly,Local shop,Sprinkles,Mostly summer,Cup
+35-44,Midwest,Cookies and cream,Weekly,Grocery store,Sprinkles,Summer only,Cone
+25-34,South,Strawberry,Every other week,Food truck,No topping,Summer only,No preference
+25-34,Northeast,Mint chocolate chip,A few times per year,Chain store,Caramel,Mostly summer,Cone
+45-54,West,Chocolate,Monthly,Local shop,Hot fudge,Summer only,No preference
+45-54,Midwest,Vanilla,Every other week,Chain store,Sprinkles,Mostly summer,No preference
+25-34,Midwest,Rocky road,Weekly,Chain store,Sprinkles,Summer only,Cup
+18-24,West,Butter pecan,Every other week,Chain store,Nuts,Mostly summer,Cup
+45-54,West,Strawberry,Monthly,Food truck,Hot fudge,Mostly summer,Cup
+55-64,Northeast,Chocolate,A few times per year,Chain store,Caramel,Mostly summer,No preference
+18-24,Midwest,Strawberry,Every other week,Chain store,Nuts,Summer only,Cup
+45-54,West,Chocolate,Every other week,Chain store,Sprinkles,Mostly summer,Cup
+18-24,Midwest,Cookie dough,Multiple times per week,Chain store,Sprinkles,Year round,Cone
+18-24,South,Cookies and cream,Every other week,Food truck,Caramel,Mostly summer,Cone
+18-24,West,Cookies and cream,Every other week,Grocery store,Nuts,Year round,Cup
+45-54,Northeast,Chocolate,Monthly,Local shop,Whipped cream,Mostly summer,No preference
+35-44,South,Cookies and cream,Weekly,Local shop,Hot fudge,Mostly summer,Cup
+45-54,Northeast,Vanilla,Every other week,Local shop,Caramel,Summer only,No preference
+25-34,South,Chocolate,Every other week,Grocery store,No topping,Year round,Cup
+45-54,Midwest,Cookie dough,A few times per year,Local shop,Caramel,Summer only,Cup
+55-64,Midwest,Rocky road,Monthly,Chain store,Hot fudge,Mostly summer,Cone
+25-34,Northeast,Mint chocolate chip,Every other week,Grocery store,Nuts,Mostly summer,Cone
+55-64,West,Vanilla,A few times per year,Grocery store,Caramel,Mostly summer,Cone
+55-64,South,Rocky road,Monthly,Chain store,No topping,Mostly summer,Cup
+25-34,West,Cookie dough,Weekly,Chain store,No topping,Summer only,Cup
+25-34,South,Cookie dough,Monthly,Chain store,Nuts,Year round,Cup
+45-54,South,Rocky road,Every other week,Local shop,Sprinkles,Summer only,Cone
+18-24,West,Vanilla,Monthly,Grocery store,No topping,Summer only,No preference
+35-44,West,Cookies and cream,Weekly,Grocery store,Sprinkles,Year round,Cup
+55-64,West,Cookies and cream,Monthly,Local shop,No topping,Summer only,Cup
+45-54,Midwest,Strawberry,Monthly,Food truck,Nuts,Summer only,Cup
+25-34,Midwest,Cookies and cream,Monthly,Food truck,No topping,Year round,Cup
+55-64,West,Cookies and cream,A few times per year,Chain store,Hot fudge,Mostly summer,Cone
+25-34,Northeast,Strawberry,Every other week,Chain store,Hot fudge,Summer only,No preference
+18-24,South,Mint chocolate chip,A few times per year,Local shop,Whipped cream,Year round,Cup
+55-64,South,Strawberry,Monthly,Chain store,No topping,Year round,Cone
+25-34,Northeast,Cookies and cream,Weekly,Chain store,Caramel,Summer only,Cone
+25-34,South,Strawberry,Weekly,Grocery store,Nuts,Year round,No preference
+18-24,Northeast,Cookie dough,Every other week,Grocery store,Nuts,Mostly summer,Cone
+18-24,South,Mint chocolate chip,Monthly,Local shop,Whipped cream,Year round,Cone
+55-64,South,Mint chocolate chip,Monthly,Chain store,Whipped cream,Mostly summer,Cone
+55-64,Northeast,Butter pecan,Every other week,Grocery store,Nuts,Year round,Cup
+25-34,West,Cookies and cream,Every other week,Local shop,Nuts,Mostly summer,No preference
+45-54,Northeast,Cookies and cream,Weekly,Chain store,Whipped cream,Summer only,Cone
+25-34,South,Mint chocolate chip,Every other week,Local shop,Whipped cream,Year round,Cone`;
+
+function ChartDisplay({ crosstabData, rowVar, colVar, chartType, darkMode }) {
+  const { crosstab, rowValues, colValues, rowTotals } = crosstabData;
+  
+  const colors = [
+    '#667eea', '#764ba2', '#f093fb', '#4facfe',
+    '#43e97b', '#fa709a', '#fee140', '#30cfd0'
+  ];
+
+  if (chartType === 'bar' || chartType === 'stacked') {
+    // Calculate actual max percentage in the data
+    const actualMaxPercentage = Math.max(
+      ...rowValues.flatMap(rv => 
+        colValues.map(cv => {
+          const count = crosstab[rv][cv];
+          return rowTotals[rv] > 0 ? (count / rowTotals[rv]) * 100 : 0;
+        })
+      )
+    );
+    
+    // Stacked charts always go to 100%, grouped bars use smart scaling
+    let finalMaxPercentage;
+    if (chartType === 'stacked') {
+      finalMaxPercentage = 100;
+    } else {
+      // Smart scaling for grouped bars: add 15% headroom and round to clean intervals
+      const getSmartMax = (maxVal) => {
+        const withHeadroom = maxVal * 1.15;
+        
+        if (withHeadroom <= 30) return 30;
+        if (withHeadroom <= 40) return 40;
+        if (withHeadroom <= 50) return 50;
+        if (withHeadroom <= 60) return 60;
+        if (withHeadroom <= 70) return 70;
+        if (withHeadroom <= 80) return 80;
+        if (withHeadroom <= 90) return 90;
+        return 100;
+      };
+      finalMaxPercentage = getSmartMax(actualMaxPercentage);
+    }
+    
+    // Helper function to wrap text
+    const wrapText = (text, maxWidth) => {
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = words[0];
+      
+      for (let i = 1; i < words.length; i++) {
+        if (currentLine.length + words[i].length + 1 <= maxWidth) {
+          currentLine += ' ' + words[i];
+        } else {
+          lines.push(currentLine);
+          currentLine = words[i];
+        }
+      }
+      lines.push(currentLine);
+      return lines;
+    };
+    
+    // Generate evenly-spaced Y-axis tick marks
+    const getYAxisTicks = (max) => {
+      const interval = max / 4; // 4 intervals = 5 tick marks
+      return [0, interval, interval * 2, interval * 3, max];
+    };
+    
+    const yAxisTicks = getYAxisTicks(finalMaxPercentage);
+    
+    // Chart colors based on dark mode
+    const bgColor = darkMode ? '#1f2937' : '#ffffff';
+    const axisColor = darkMode ? '#9ca3af' : '#333333';
+    const textColor = darkMode ? '#e5e7eb' : '#666666';
+    const labelColor = darkMode ? '#f3f4f6' : '#333333';
+    const barLabelColor = darkMode ? '#ffffff' : '#1f2937'; // Gray-800 in light mode
+    
+    // Dynamic height based on number of bars (minimum 40px per bar group)
+    const minBarGroupHeight = 40;
+    const numBars = rowValues.length;
+    const dynamicHeight = Math.max(560, numBars * minBarGroupHeight + 220); // 220px for axes and padding
+    const chartHeight = dynamicHeight - 220; // Actual chart area
+    
+    return (
+      <div className={`p-4 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <svg width="100%" height={dynamicHeight} viewBox={`0 0 800 ${dynamicHeight}`}>
+          {/* Y-axis */}
+          <line x1="60" y1="20" x2="60" y2={chartHeight + 20} stroke={axisColor} strokeWidth="2" />
+          {/* X-axis */}
+          <line x1="60" y1={chartHeight + 20} x2="760" y2={chartHeight + 20} stroke={axisColor} strokeWidth="2" />
+          
+          {/* Y-axis labels - show percentages with dynamic scaling */}
+          {yAxisTicks.map((pct, i) => (
+            <g key={i}>
+              <text x="50" y={chartHeight + 20 - ((pct / finalMaxPercentage) * chartHeight)} textAnchor="end" fontSize="12" fill={textColor}>
+                {pct}%
+              </text>
+              <line 
+                x1="55" 
+                y1={chartHeight + 20 - ((pct / finalMaxPercentage) * chartHeight)} 
+                x2="60" 
+                y2={chartHeight + 20 - ((pct / finalMaxPercentage) * chartHeight)} 
+                stroke={axisColor} 
+                strokeWidth="1" 
+              />
+            </g>
+          ))}
+          
+          {/* Bars */}
+          {rowValues.map((rv, rvIdx) => {
+            const totalWidth = 680;
+            const gapBetweenGroups = 15; // Spacing between bar groups
+            const barWidth = (totalWidth - (gapBetweenGroups * (rowValues.length - 1))) / rowValues.length;
+            const groupX = 60 + (rvIdx * (barWidth + gapBetweenGroups));
+            
+            if (chartType === 'stacked') {
+              let stackY = chartHeight + 20;
+              return (
+                <g key={rv}>
+                  {colValues.map((cv, cvIdx) => {
+                    const value = crosstab[rv][cv];
+                    const percentage = rowTotals[rv] > 0 ? (value / rowTotals[rv]) * 100 : 0;
+                    const height = (percentage / finalMaxPercentage) * chartHeight;
+                    stackY -= height;
+                    const currentY = stackY;
+                    
+                    return (
+                      <g key={cv}>
+                        <rect
+                          x={groupX + 10}
+                          y={currentY}
+                          width={barWidth - 20}
+                          height={height}
+                          fill={colors[cvIdx % colors.length]}
+                          opacity="0.8"
+                        />
+                        {height > 20 && (
+                          <text
+                            x={groupX + barWidth / 2}
+                            y={currentY + height / 2 + 4}
+                            fontSize="11"
+                            fill={barLabelColor}
+                            fontWeight="bold"
+                            textAnchor="middle"
+                          >
+                            {Math.round(percentage)}%
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
+                  {/* Wrapped label */}
+                  {wrapText(rv, 15).map((line, idx) => (
+                    <text
+                      key={idx}
+                      x={groupX + barWidth / 2}
+                      y={chartHeight + 35 + (idx * 14)}
+                      fontSize="11"
+                      fill={labelColor}
+                      textAnchor="middle"
+                    >
+                      {line}
+                    </text>
+                  ))}
+                </g>
+              );
+            } else {
+              // Grouped bars
+              const subBarWidth = (barWidth - 20) / colValues.length;
+              return (
+                <g key={rv}>
+                  {colValues.map((cv, cvIdx) => {
+                    const value = crosstab[rv][cv];
+                    const percentage = rowTotals[rv] > 0 ? (value / rowTotals[rv]) * 100 : 0;
+                    const height = (percentage / finalMaxPercentage) * chartHeight;
+                    const x = groupX + 10 + (cvIdx * subBarWidth);
+                    
+                    return (
+                      <g key={cv}>
+                        <rect
+                          x={x}
+                          y={chartHeight + 20 - height}
+                          width={subBarWidth - 2}
+                          height={height}
+                          fill={colors[cvIdx % colors.length]}
+                          opacity="0.8"
+                        />
+                        {height > 20 && (
+                          <text
+                            x={x + subBarWidth / 2 - 2}
+                            y={chartHeight + 20 - height / 2 + 4}
+                            fontSize="10"
+                            fill={barLabelColor}
+                            fontWeight="bold"
+                            textAnchor="middle"
+                          >
+                            {Math.round(percentage)}%
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
+                  {/* Wrapped label */}
+                  {wrapText(rv, 15).map((line, idx) => (
+                    <text
+                      key={idx}
+                      x={groupX + barWidth / 2}
+                      y={chartHeight + 35 + (idx * 14)}
+                      fontSize="11"
+                      fill={labelColor}
+                      textAnchor="middle"
+                    >
+                      {line}
+                    </text>
+                  ))}
+                </g>
+              );
+            }
+          })}
+          
+          {/* Legend - wrapping layout */}
+          {colValues.map((cv, idx) => {
+            const itemsPerRow = 3;
+            const row = Math.floor(idx / itemsPerRow);
+            const col = idx % itemsPerRow;
+            const xPos = 80 + (col * 220);
+            const yPos = chartHeight + 110 + (row * 30);
+            
+            // Wrap text to fit in available space (max ~25 chars per line)
+            const maxCharsPerLine = 25;
+            const words = cv.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+              if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+                currentLine = (currentLine + ' ' + word).trim();
+              } else {
+                if (currentLine) lines.push(currentLine);
+                currentLine = word;
+              }
+            });
+            if (currentLine) lines.push(currentLine);
+            
+            // Limit to 2 lines max
+            const displayLines = lines.slice(0, 2);
+            if (lines.length > 2) {
+              displayLines[1] = displayLines[1].substring(0, 22) + '...';
+            }
+            
+            return (
+              <g key={cv}>
+                <rect
+                  x={xPos}
+                  y={yPos}
+                  width="15"
+                  height="15"
+                  fill={colors[idx % colors.length]}
+                  opacity="0.8"
+                />
+                {displayLines.map((line, lineIdx) => (
+                  <text 
+                    key={lineIdx}
+                    x={xPos + 20} 
+                    y={yPos + 12 + (lineIdx * 12)} 
+                    fontSize="11" 
+                    fill={labelColor}
+                  >
+                    {line}
+                  </text>
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+  
+  if (chartType === 'line') {
+    // Calculate actual max percentage in the data
+    const actualMaxPercentage = Math.max(
+      ...rowValues.flatMap(rv => 
+        colValues.map(cv => {
+          const count = crosstab[rv][cv];
+          return rowTotals[rv] > 0 ? (count / rowTotals[rv]) * 100 : 0;
+        })
+      )
+    );
+    
+    // Smart scaling: add 10% headroom and round to clean intervals
+    const getSmartMax = (maxVal) => {
+      const withHeadroom = maxVal * 1.15; // Add 15% headroom
+      
+      // Round to clean intervals
+      if (withHeadroom <= 30) return 30;
+      if (withHeadroom <= 40) return 40;
+      if (withHeadroom <= 50) return 50;
+      if (withHeadroom <= 60) return 60;
+      if (withHeadroom <= 70) return 70;
+      if (withHeadroom <= 80) return 80;
+      if (withHeadroom <= 90) return 90;
+      return 100;
+    };
+    
+    const finalMaxPercentage = getSmartMax(actualMaxPercentage);
+    
+    // Generate evenly-spaced Y-axis tick marks
+    const getYAxisTicks = (max) => {
+      const interval = max / 4; // 4 intervals = 5 tick marks
+      return [0, interval, interval * 2, interval * 3, max];
+    };
+    
+    const yAxisTicks = getYAxisTicks(finalMaxPercentage);
+    
+    // Chart colors based on dark mode
+    const bgColor = darkMode ? '#1f2937' : '#ffffff';
+    const axisColor = darkMode ? '#9ca3af' : '#333333';
+    const textColor = darkMode ? '#e5e7eb' : '#666666';
+    const labelColor = darkMode ? '#f3f4f6' : '#333333';
+    
+    const wrapText = (text, maxWidth) => {
+      const words = text.split(' ');
+      const lines = [];
+      let currentLine = words[0];
+      
+      for (let i = 1; i < words.length; i++) {
+        if (currentLine.length + words[i].length + 1 <= maxWidth) {
+          currentLine += ' ' + words[i];
+        } else {
+          lines.push(currentLine);
+          currentLine = words[i];
+        }
+      }
+      lines.push(currentLine);
+      return lines;
+    };
+    
+    return (
+      <div className={`p-4 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <svg width="100%" height="560" viewBox="0 0 800 560">
+          <line x1="60" y1="20" x2="60" y2="340" stroke={axisColor} strokeWidth="2" />
+          <line x1="60" y1="340" x2="760" y2="340" stroke={axisColor} strokeWidth="2" />
+          
+          {yAxisTicks.map((pct, i) => (
+            <g key={i}>
+              <text x="50" y={340 - ((pct / finalMaxPercentage) * 320)} textAnchor="end" fontSize="12" fill={textColor}>
+                {pct}%
+              </text>
+            </g>
+          ))}
+          
+          {colValues.map((cv, cvIdx) => {
+            const points = rowValues.map((rv, rvIdx) => {
+              const x = 80 + (rvIdx * (600 / (rowValues.length - 1 || 1)));
+              const value = crosstab[rv][cv];
+              const percentage = rowTotals[rv] > 0 ? (value / rowTotals[rv]) * 100 : 0;
+              const y = 340 - ((percentage / finalMaxPercentage) * 320);
+              return { x, y, percentage };
+            });
+            
+            const pathD = points.map((p, i) => 
+              `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`
+            ).join(' ');
+            
+            return (
+              <g key={cv}>
+                <path
+                  d={pathD}
+                  fill="none"
+                  stroke={colors[cvIdx % colors.length]}
+                  strokeWidth="3"
+                />
+                {points.map((p, i) => (
+                  <g key={i}>
+                    <circle
+                      cx={p.x}
+                      cy={p.y}
+                      r="5"
+                      fill={colors[cvIdx % colors.length]}
+                    />
+                    <text
+                      x={p.x}
+                      y={p.y - 10}
+                      fontSize="11"
+                      fill={labelColor}
+                      textAnchor="middle"
+                      fontWeight="bold"
+                    >
+                      {Math.round(p.percentage)}%
+                    </text>
+                  </g>
+                ))}
+              </g>
+            );
+          })}
+          
+          {rowValues.map((rv, idx) => {
+            const x = 80 + (idx * (600 / (rowValues.length - 1 || 1)));
+            return wrapText(rv, 15).map((line, lineIdx) => (
+              <text
+                key={`${idx}-${lineIdx}`}
+                x={x}
+                y={355 + (lineIdx * 14)}
+                fontSize="11"
+                fill={labelColor}
+                textAnchor="middle"
+              >
+                {line}
+              </text>
+            ));
+          })}
+          
+          {colValues.map((cv, idx) => {
+            const itemsPerRow = 3;
+            const row = Math.floor(idx / itemsPerRow);
+            const col = idx % itemsPerRow;
+            const xPos = 80 + (col * 220);
+            const yPos = 430 + (row * 30); // Moved down to avoid X-axis label overlap
+            
+            // Wrap text to fit in available space
+            const maxCharsPerLine = 25;
+            const words = cv.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+              if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+                currentLine = (currentLine + ' ' + word).trim();
+              } else {
+                if (currentLine) lines.push(currentLine);
+                currentLine = word;
+              }
+            });
+            if (currentLine) lines.push(currentLine);
+            
+            // Limit to 2 lines max
+            const displayLines = lines.slice(0, 2);
+            if (lines.length > 2) {
+              displayLines[1] = displayLines[1].substring(0, 22) + '...';
+            }
+            
+            return (
+              <g key={cv}>
+                <rect
+                  x={xPos}
+                  y={yPos}
+                  width="15"
+                  height="15"
+                  fill={colors[idx % colors.length]}
+                />
+                {displayLines.map((line, lineIdx) => (
+                  <text 
+                    key={lineIdx}
+                    x={xPos + 20} 
+                    y={yPos + 12 + (lineIdx * 12)} 
+                    fontSize="11" 
+                    fill={labelColor}
+                  >
+                    {line}
+                  </text>
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+  
+  if (chartType === 'heatmap') {
+    const cellWidth = 600 / colValues.length;
+    const cellHeight = 300 / rowValues.length;
+    
+    // Chart colors based on dark mode
+    const labelColor = darkMode ? '#f3f4f6' : '#333333';
+    const strokeColor = darkMode ? '#374151' : '#ffffff';
+    
+    const truncate = (text, maxLen) => {
+      return text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
+    };
+    
+    return (
+      <div className={`p-4 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <svg width="100%" height="400" viewBox="0 0 800 400">
+          {rowValues.map((rv, rvIdx) => (
+            <g key={rv}>
+              {colValues.map((cv, cvIdx) => {
+                const value = crosstab[rv][cv];
+                const percentage = rowTotals[rv] > 0 ? (value / rowTotals[rv]) * 100 : 0;
+                const intensity = percentage / 100;
+                const color = `rgba(102, 126, 234, ${intensity})`;
+                
+                return (
+                  <g key={cv}>
+                    <rect
+                      x={100 + (cvIdx * cellWidth)}
+                      y={50 + (rvIdx * cellHeight)}
+                      width={cellWidth - 2}
+                      height={cellHeight - 2}
+                      fill={color}
+                      stroke={strokeColor}
+                      strokeWidth="2"
+                    />
+                    <text
+                      x={100 + (cvIdx * cellWidth) + cellWidth / 2}
+                      y={50 + (rvIdx * cellHeight) + cellHeight / 2 + 5}
+                      fontSize="14"
+                      fill={intensity > 0.5 ? 'white' : labelColor}
+                      textAnchor="middle"
+                      fontWeight="bold"
+                    >
+                      {Math.round(percentage)}%
+                    </text>
+                  </g>
+                );
+              })}
+              <text
+                x="90"
+                y={50 + (rvIdx * cellHeight) + cellHeight / 2 + 5}
+                fontSize="11"
+                fill={labelColor}
+                textAnchor="end"
+              >
+                {truncate(rv, 12)}
+              </text>
+            </g>
+          ))}
+          
+          {colValues.map((cv, cvIdx) => (
+            <text
+              key={cv}
+              x={100 + (cvIdx * cellWidth) + cellWidth / 2}
+              y="40"
+              fontSize="11"
+              fill={labelColor}
+              textAnchor="middle"
+            >
+              {truncate(cv, 10)}
+            </text>
+          ))}
+        </svg>
+      </div>
+    );
+  }
+  
+  // Horizontal Bar Charts
+  if (chartType === 'barh' || chartType === 'stackedh') {
+    // Calculate actual max percentage in the data
+    const actualMaxPercentage = Math.max(
+      ...rowValues.flatMap(rv => 
+        colValues.map(cv => {
+          const count = crosstab[rv][cv];
+          return rowTotals[rv] > 0 ? (count / rowTotals[rv]) * 100 : 0;
+        })
+      )
+    );
+    
+    // Stacked charts always go to 100%, grouped bars use smart scaling
+    let finalMaxPercentage;
+    if (chartType === 'stackedh') {
+      finalMaxPercentage = 100;
+    } else {
+      const getSmartMax = (maxVal) => {
+        const withHeadroom = maxVal * 1.15;
+        if (withHeadroom <= 30) return 30;
+        if (withHeadroom <= 40) return 40;
+        if (withHeadroom <= 50) return 50;
+        if (withHeadroom <= 60) return 60;
+        if (withHeadroom <= 70) return 70;
+        if (withHeadroom <= 80) return 80;
+        if (withHeadroom <= 90) return 90;
+        return 100;
+      };
+      finalMaxPercentage = getSmartMax(actualMaxPercentage);
+    }
+    
+    const getXAxisTicks = (max) => {
+      const interval = max / 4;
+      return [0, interval, interval * 2, interval * 3, max];
+    };
+    
+    const xAxisTicks = getXAxisTicks(finalMaxPercentage);
+    
+    // Chart colors
+    const bgColor = darkMode ? '#1f2937' : '#ffffff';
+    const axisColor = darkMode ? '#9ca3af' : '#333333';
+    const textColor = darkMode ? '#e5e7eb' : '#666666';
+    const labelColor = darkMode ? '#f3f4f6' : '#333333';
+    const barLabelColor = darkMode ? '#ffffff' : '#1f2937'; // Gray-800 in light mode
+    
+    // Dynamic height based on number of bars (minimum height per bar to fit text)
+    const minBarHeight = 50; // Increased from 40 to fit percentage labels inside bars
+    const numBars = rowValues.length;
+    const dynamicHeight = Math.max(500, numBars * minBarHeight + 120); // 120px for axes and padding
+    const chartHeight = dynamicHeight - 120; // Actual chart area
+    
+    const truncate = (text, maxLen) => {
+      return text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
+    };
+    
+    return (
+      <div className={`p-4 rounded ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+        <svg width="100%" height={dynamicHeight} viewBox={`0 0 800 ${dynamicHeight}`}>
+          {/* Y-axis (vertical, for category labels) */}
+          <line x1="150" y1="20" x2="150" y2={chartHeight + 20} stroke={axisColor} strokeWidth="2" />
+          {/* X-axis (horizontal, for percentages) */}
+          <line x1="150" y1={chartHeight + 20} x2="750" y2={chartHeight + 20} stroke={axisColor} strokeWidth="2" />
+          
+          {/* X-axis labels (percentages) */}
+          {xAxisTicks.map((pct, i) => (
+            <g key={i}>
+              <text x={150 + ((pct / finalMaxPercentage) * 600)} y={chartHeight + 35} textAnchor="middle" fontSize="12" fill={textColor}>
+                {Math.round(pct)}%
+              </text>
+              <line 
+                x1={150 + ((pct / finalMaxPercentage) * 600)}
+                y1={chartHeight + 15}
+                x2={150 + ((pct / finalMaxPercentage) * 600)}
+                y2={chartHeight + 20}
+                stroke={axisColor}
+                strokeWidth="1" 
+              />
+            </g>
+          ))}
+          
+          {/* Bars */}
+          {rowValues.map((rv, rvIdx) => {
+            const totalHeight = chartHeight;
+            const gapBetweenGroups = 8; // Reduced from 15px (was too much) - sweet spot between spacing and thickness
+            const barHeight = (totalHeight - (gapBetweenGroups * (rowValues.length - 1))) / rowValues.length;
+            const groupY = 20 + (rvIdx * (barHeight + gapBetweenGroups));
+            
+            if (chartType === 'stackedh') {
+              let stackX = 150;
+              return (
+                <g key={rv}>
+                  {colValues.map((cv, cvIdx) => {
+                    const value = crosstab[rv][cv];
+                    const percentage = rowTotals[rv] > 0 ? (value / rowTotals[rv]) * 100 : 0;
+                    const width = (percentage / finalMaxPercentage) * 600;
+                    const currentX = stackX;
+                    stackX += width;
+                    
+                    return (
+                      <g key={cv}>
+                        <rect
+                          x={currentX}
+                          y={groupY + 2}
+                          width={width}
+                          height={barHeight - 4}
+                          fill={colors[cvIdx % colors.length]}
+                          opacity="0.8"
+                        />
+                        {width > 40 && (
+                          <text
+                            x={currentX + width / 2}
+                            y={groupY + barHeight / 2}
+                            fontSize="11"
+                            fill={barLabelColor}
+                            fontWeight="bold"
+                            textAnchor="middle"
+                          >
+                            {Math.round(percentage)}%
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
+                  {/* Row label - wrapped */}
+                  {(() => {
+                    const maxChars = 18;
+                    const words = rv.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    
+                    words.forEach(word => {
+                      if ((currentLine + ' ' + word).trim().length <= maxChars) {
+                        currentLine = (currentLine + ' ' + word).trim();
+                      } else {
+                        if (currentLine) lines.push(currentLine);
+                        currentLine = word;
+                      }
+                    });
+                    if (currentLine) lines.push(currentLine);
+                    
+                    const displayLines = lines.slice(0, 2);
+                    if (lines.length > 2) {
+                      displayLines[1] = displayLines[1].substring(0, 15) + '...';
+                    }
+                    
+                    return displayLines.map((line, idx) => (
+                      <text
+                        key={idx}
+                        x="145"
+                        y={groupY + barHeight / 2 - (displayLines.length * 6) + (idx * 12) + 6}
+                        fontSize="11"
+                        fill={labelColor}
+                        textAnchor="end"
+                      >
+                        {line}
+                      </text>
+                    ));
+                  })()}
+                </g>
+              );
+            } else {
+              // Grouped horizontal bars
+              const subBarHeight = (barHeight - 4) / colValues.length;
+              return (
+                <g key={rv}>
+                  {colValues.map((cv, cvIdx) => {
+                    const value = crosstab[rv][cv];
+                    const percentage = rowTotals[rv] > 0 ? (value / rowTotals[rv]) * 100 : 0;
+                    const width = (percentage / finalMaxPercentage) * 600;
+                    const y = groupY + 2 + (cvIdx * subBarHeight);
+                    
+                    return (
+                      <g key={cv}>
+                        <rect
+                          x={150}
+                          y={y}
+                          width={width}
+                          height={subBarHeight - 1}
+                          fill={colors[cvIdx % colors.length]}
+                          opacity="0.8"
+                        />
+                        {width > 40 && (
+                          <text
+                            x={150 + width / 2}
+                            y={y + subBarHeight / 2 + 4}
+                            fontSize="10"
+                            fill={barLabelColor}
+                            fontWeight="bold"
+                            textAnchor="middle"
+                          >
+                            {Math.round(percentage)}%
+                          </text>
+                        )}
+                      </g>
+                    );
+                  })}
+                  {/* Row label - wrapped */}
+                  {(() => {
+                    const maxChars = 18;
+                    const words = rv.split(' ');
+                    const lines = [];
+                    let currentLine = '';
+                    
+                    words.forEach(word => {
+                      if ((currentLine + ' ' + word).trim().length <= maxChars) {
+                        currentLine = (currentLine + ' ' + word).trim();
+                      } else {
+                        if (currentLine) lines.push(currentLine);
+                        currentLine = word;
+                      }
+                    });
+                    if (currentLine) lines.push(currentLine);
+                    
+                    const displayLines = lines.slice(0, 2);
+                    if (lines.length > 2) {
+                      displayLines[1] = displayLines[1].substring(0, 15) + '...';
+                    }
+                    
+                    return displayLines.map((line, idx) => (
+                      <text
+                        key={idx}
+                        x="145"
+                        y={groupY + barHeight / 2 - (displayLines.length * 6) + (idx * 12) + 6}
+                        fontSize="11"
+                        fill={labelColor}
+                        textAnchor="end"
+                      >
+                        {line}
+                      </text>
+                    ));
+                  })()}
+                </g>
+              );
+            }
+          })}
+          
+          {/* Legend - wrapping layout */}
+          {colValues.map((cv, idx) => {
+            const itemsPerRow = 3;
+            const row = Math.floor(idx / itemsPerRow);
+            const col = idx % itemsPerRow;
+            const xPos = 150 + (col * 200);
+            const yPos = chartHeight + 60 + (row * 30);
+            
+            const maxCharsPerLine = 22;
+            const words = cv.split(' ');
+            const lines = [];
+            let currentLine = '';
+            
+            words.forEach(word => {
+              if ((currentLine + ' ' + word).trim().length <= maxCharsPerLine) {
+                currentLine = (currentLine + ' ' + word).trim();
+              } else {
+                if (currentLine) lines.push(currentLine);
+                currentLine = word;
+              }
+            });
+            if (currentLine) lines.push(currentLine);
+            
+            const displayLines = lines.slice(0, 2);
+            if (lines.length > 2) {
+              displayLines[1] = displayLines[1].substring(0, 19) + '...';
+            }
+            
+            return (
+              <g key={cv}>
+                <rect
+                  x={xPos}
+                  y={yPos}
+                  width="15"
+                  height="15"
+                  fill={colors[idx % colors.length]}
+                  opacity="0.8"
+                />
+                {displayLines.map((line, lineIdx) => (
+                  <text 
+                    key={lineIdx}
+                    x={xPos + 20} 
+                    y={yPos + 12 + (lineIdx * 12)} 
+                    fontSize="11" 
+                    fill={labelColor}
+                  >
+                    {line}
+                  </text>
+                ))}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+    );
+  }
+  
+  return null;
+}
+
+function SurveyAnalyzer() {
+  const [surveyData, setSurveyData] = useState([]);
+  const [columns, setColumns] = useState([]);
+  const [rowVars, setRowVars] = useState([]);
+  const [colVar, setColVar] = useState('');
+  const [groupings, setGroupings] = useState({});
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [showHideColModal, setShowHideColModal] = useState(false);
+  const [groupingVariable, setGroupingVariable] = useState('');
+  const [tempGroups, setTempGroups] = useState([]);
+  const [showChart, setShowChart] = useState(-1);
+  const [chartType, setChartType] = useState('bar');
+  const [showRowSelector, setShowRowSelector] = useState(false);
+  const [hiddenRowValues, setHiddenRowValues] = useState(new Set());
+  const [percentageOnly, setPercentageOnly] = useState(true);
+  const [showTopline, setShowTopline] = useState(false);
+  const [showColSelector, setShowColSelector] = useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [decimals, setDecimals] = useState(0);
+  const [rowOrders, setRowOrders] = useState({});
+  const [draggedRow, setDraggedRow] = useState(null);
+  const [editingColumn, setEditingColumn] = useState(null);
+  const [columnLabels, setColumnLabels] = useState({});
+  const [showHelpModal, setShowHelpModal] = useState(false);
+  const [colOrders, setColOrders] = useState({});
+  const [draggedCol, setDraggedCol] = useState(null);
+  const [selectedForExport, setSelectedForExport] = useState(new Set());
+  const [showProjectModal, setShowProjectModal] = useState(false);
+  const [savedProjects, setSavedProjects] = useState([]);
+  const [currentProjectName, setCurrentProjectName] = useState('');
+  const [sortColumn, setSortColumn] = useState({}); // { rowVar: { column: 'colName', direction: 'desc'/'asc' } }
+  const [hiddenColValues, setHiddenColValues] = useState(new Set()); // Hidden column values
+  const [showColHide, setShowColHide] = useState(false); // Show/hide column value selector
+  
+  const rowSelectorRef = useRef(null);
+  const colSelectorRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (rowSelectorRef.current && !rowSelectorRef.current.contains(event.target)) {
+        setShowRowSelector(false);
+      }
+    }
+
+    if (showRowSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showRowSelector]);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (colSelectorRef.current && !colSelectorRef.current.contains(event.target)) {
+        setShowColSelector(false);
+      }
+    }
+
+    if (showColSelector) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [showColSelector]);
+
+  // Auto-create demo project on first visit
+  useEffect(() => {
+    if (!localStorage.getItem('easycrosstabs_demo_created')) {
+      try {
+        // Parse demo CSV data
+        const rows = DEMO_CSV_DATA.trim().split('\n');
+        const headers = rows[0].split(',');
+        const data = rows.slice(1).map(row => {
+          const values = row.split(',');
+          const obj = {};
+          headers.forEach((header, i) => {
+            obj[header] = values[i] || '';
+          });
+          return obj;
+        });
+
+        // Create demo project
+        const demoProject = {
+          name: "🍦 Demo: Ice Cream Survey",
+          savedAt: new Date().toISOString(),
+          data: {
+            surveyData: data,
+            columns: headers,
+            rowVars: ['Ice Cream Purchase Frequency', 'Topping Preference', 'Cone Or Cup'],
+            colVar: 'Region',
+            groupings: {},
+            columnLabels: {},
+            rowOrders: {},
+            colOrders: {},
+            hiddenRowValues: [],
+            hiddenColValues: [],
+            sortColumn: {},
+            percentageOnly: true,
+            decimals: 0,
+            darkMode: false
+          }
+        };
+
+        // Save compressed demo project
+        const compressed = LZString.compress(JSON.stringify(demoProject));
+        localStorage.setItem('easycrosstabs_project:demo', compressed);
+        localStorage.setItem('easycrosstabs_demo_created', 'true');
+        
+        console.log('Demo project created successfully');
+      } catch (error) {
+        console.error('Error creating demo project:', error);
+      }
+    }
+    
+    // If demo version, auto-load demo data on first visit
+    if (IS_DEMO_VERSION && surveyData.length === 0) {
+      loadDemoData();
+    }
+  }, []);
+
+
+  // Smart scale detection and auto-sorting with keyword-based intelligence
+  const detectAndSortScale = (values) => {
+    if (!values || values.length === 0) return values;
+    
+    // Keyword dictionaries for intensity and direction
+    const intensityKeywords = {
+      veryStrong: ['extremely', 'completely', 'very much', 'much more', 'much less', 'far more', 'far less', 'much better', 'much worse'],
+      strong: ['strongly', 'very', 'much', 'definitely', 'highly'],
+      moderate: ['somewhat', 'moderately', 'fairly', 'slightly', 'a little', 'quite', 'reasonably', 'a bit'],
+      neutral: ['neutral', 'neither', "don't know", 'unsure', 'no opinion', 'not sure', 'undecided']
+    };
+    
+    const directionKeywords = {
+      positive: ['agree', 'satisfied', 'likely', 'important', 'good', 'favorable', 'positive', 'more', 'increase', 'better', 'yes', 'true', 'easy', 'above', 'excellent', 'great'],
+      negative: ['disagree', 'dissatisfied', 'unlikely', 'unimportant', 'poor', 'unfavorable', 'negative', 'less', 'decrease', 'worse', 'no', 'false', 'difficult', 'below', 'bad']
+    };
+    
+    // Score each value
+    const scoredValues = values.map(value => {
+      const lowerValue = value.toString().toLowerCase().trim();
+      
+      // Detect intensity (0-3 scale)
+      let intensity = 1; // Default to 1 if no modifier found
+      if (intensityKeywords.neutral.some(kw => lowerValue.includes(kw))) {
+        intensity = 0;
+      } else if (intensityKeywords.veryStrong.some(kw => lowerValue.includes(kw))) {
+        intensity = 3;
+      } else if (intensityKeywords.strong.some(kw => lowerValue.includes(kw))) {
+        intensity = 2;
+      } else if (intensityKeywords.moderate.some(kw => lowerValue.includes(kw))) {
+        intensity = 1;
+      }
+      
+      // Detect direction (-1, 0, +1)
+      let direction = 0;
+      const hasNeutral = intensityKeywords.neutral.some(kw => lowerValue.includes(kw));
+      const hasPositive = directionKeywords.positive.some(kw => lowerValue.includes(kw));
+      const hasNegative = directionKeywords.negative.some(kw => lowerValue.includes(kw));
+      
+      if (hasNeutral) {
+        direction = 0;
+      } else if (hasPositive && !hasNegative) {
+        direction = 1;
+      } else if (hasNegative && !hasPositive) {
+        direction = -1;
+      }
+      
+      // Calculate final score
+      const score = direction * intensity;
+      
+      return {
+        originalValue: value,
+        score: score,
+        hasPattern: direction !== 0 || hasNeutral // Has pattern if we detected direction or neutral
+      };
+    });
+    
+    // Check if enough values have patterns (at least 40% - lowered threshold)
+    const patternsDetected = scoredValues.filter(v => v.hasPattern).length;
+    if (patternsDetected < values.length * 0.4) {
+      // Not enough patterns detected, return original order
+      return values;
+    }
+    
+    // Check if we have both positive and negative (or neutral) - indicates it's a scale
+    const hasPositive = scoredValues.some(v => v.score > 0);
+    const hasNegative = scoredValues.some(v => v.score < 0);
+    const hasNeutral = scoredValues.some(v => v.score === 0 && v.hasPattern);
+    
+    if (!((hasPositive && hasNegative) || (hasPositive && hasNeutral) || (hasNegative && hasNeutral))) {
+      // Doesn't look like a balanced scale, return original
+      return values;
+    }
+    
+    // Sort by score (negative to positive)
+    const sorted = [...scoredValues].sort((a, b) => {
+      if (a.score !== b.score) {
+        return a.score - b.score;
+      }
+      // If scores are equal, maintain original relative order
+      return values.indexOf(a.originalValue) - values.indexOf(b.originalValue);
+    });
+    
+    return sorted.map(v => v.originalValue);
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const text = event.target.result;
+      parseCSV(text);
+    };
+    reader.readAsText(file);
+  };
+
+  const fixEncoding = (text) => {
+    // Fix common encoding issues
+    return text
+      .replace(/â€™/g, "'")  // Right single quotation mark
+      .replace(/â€œ/g, '"')  // Left double quotation mark
+      .replace(/â€/g, '"')   // Right double quotation mark
+      .replace(/â€"/g, '—')  // Em dash
+      .replace(/â€"/g, '–')  // En dash
+      .replace(/Ã©/g, 'é')   // e with acute accent
+      .replace(/Ã¨/g, 'è')   // e with grave accent
+      .replace(/Ã /g, 'à')   // a with grave accent
+      .replace(/Ã§/g, 'ç')   // c with cedilla
+      .replace(/â€¦/g, '...')  // Ellipsis
+      .replace(/â€¢/g, '•')  // Bullet point
+      .replace(/Â/g, '')     // Remove standalone Â
+      .replace(/�/g, "'");   // Replace generic replacement character
+  };
+
+  const parseCSV = (text) => {
+    // More robust CSV parsing that handles quoted fields
+    const lines = text.split('\n').filter(line => line.trim());
+    if (lines.length === 0) return;
+
+    const parseLine = (line) => {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          result.push(fixEncoding(current.trim().replace(/^"|"$/g, '')));
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(fixEncoding(current.trim().replace(/^"|"$/g, '')));
+      return result;
+    };
+
+    const headers = parseLine(lines[0]);
+    const data = [];
+
+    for (let i = 1; i < lines.length; i++) {
+      const values = parseLine(lines[i]);
+      const row = {};
+      headers.forEach((header, idx) => {
+        row[header] = values[idx] || '';
+      });
+      if (Object.values(row).some(v => v)) { // Only add non-empty rows
+        data.push(row);
+      }
+    }
+
+    setColumns(headers);
+    setSurveyData(data);
+    setRowVars([]);
+    setColVar('');
+  };
+
+  const calculateCompletionRate = () => {
+    if (surveyData.length === 0) return 0;
+    let totalFields = surveyData.length * columns.length;
+    let filledFields = 0;
+    
+    surveyData.forEach(row => {
+      columns.forEach(col => {
+        if (row[col] && row[col].toString().trim() !== '') {
+          filledFields++;
+        }
+      });
+    });
+    
+    return Math.round((filledFields / totalFields) * 100);
+  };
+
+  const applyGrouping = (value, variable) => {
+    if (!groupings[variable]) return value;
+    
+    for (const group of groupings[variable]) {
+      if (group.values.includes(value)) {
+        return group.name;
+      }
+    }
+    return value;
+  };
+
+  const toggleRowVar = (col) => {
+    if (rowVars.includes(col)) {
+      setRowVars(rowVars.filter(v => v !== col));
+    } else {
+      setRowVars([...rowVars, col]);
+    }
+  };
+
+  const selectAllRowVars = () => {
+    setRowVars([...columns]);
+  };
+
+  const deselectAllRowVars = () => {
+    setRowVars([]);
+  };
+
+  const getRowVarLabel = () => {
+    if (rowVars.length === 0) return 'Select questions';
+    if (rowVars.length === 1) return rowVars[0];
+    return `${rowVars.length} questions selected`;
+  };
+
+  const toggleHideRowValue = (value) => {
+    const newHidden = new Set(hiddenRowValues);
+    if (newHidden.has(value)) {
+      newHidden.delete(value);
+    } else {
+      newHidden.add(value);
+    }
+    setHiddenRowValues(newHidden);
+  };
+
+  const formatPercentage = (value, total) => {
+    if (total === 0) return '0%';
+    const pct = (value / total) * 100;
+    if (decimals === 0) return `${Math.round(pct)}%`;
+    if (decimals === 1) return `${pct.toFixed(1)}%`;
+    return `${pct.toFixed(2)}%`;
+  };
+
+  const handleDragStart = (e, rowValue, rowVar) => {
+    setDraggedRow({ value: rowValue, rowVar });
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleDrop = (e, targetValue, rowVar) => {
+    e.preventDefault();
+    if (!draggedRow || draggedRow.rowVar !== rowVar) return;
+
+    const currentOrder = rowOrders[rowVar] || [];
+    const fromValue = draggedRow.value;
+    const toValue = targetValue;
+
+    if (fromValue === toValue) {
+      setDraggedRow(null);
+      return;
+    }
+
+    // Get current positions
+    const fromIndex = currentOrder.indexOf(fromValue);
+    const toIndex = currentOrder.indexOf(toValue);
+
+    let newOrder = [...currentOrder];
+    
+    // If both are in the order, swap them
+    if (fromIndex !== -1 && toIndex !== -1) {
+      [newOrder[fromIndex], newOrder[toIndex]] = [newOrder[toIndex], newOrder[fromIndex]];
+    } else if (fromIndex !== -1) {
+      // fromValue is in order, toValue is not
+      newOrder = newOrder.filter(v => v !== fromValue);
+      const insertIndex = currentOrder.findIndex(v => v === toValue);
+      newOrder.splice(insertIndex >= 0 ? insertIndex : newOrder.length, 0, fromValue);
+    } else if (toIndex !== -1) {
+      // toValue is in order, fromValue is not
+      newOrder.splice(toIndex, 0, fromValue);
+    } else {
+      // Neither are in order yet
+      newOrder = [fromValue, toValue];
+    }
+
+    setRowOrders({
+      ...rowOrders,
+      [rowVar]: newOrder
+    });
+    setDraggedRow(null);
+  };
+
+  const getOrderedRowValues = (rowValues, rowVar) => {
+    const customOrder = rowOrders[rowVar];
+    if (!customOrder || customOrder.length === 0) return rowValues;
+
+    // Separate rows that are in custom order vs not
+    const ordered = customOrder.filter(v => rowValues.includes(v));
+    const unordered = rowValues.filter(v => !customOrder.includes(v));
+    
+    return [...ordered, ...unordered];
+  };
+
+  // Click-to-sort functionality
+  const toggleHiddenColValue = (value) => {
+    const updated = new Set(hiddenColValues);
+    if (updated.has(value)) {
+      updated.delete(value);
+    } else {
+      updated.add(value);
+    }
+    setHiddenColValues(updated);
+  };
+
+  const handleColumnSort = (rowVar, column, crosstabData) => {
+    const { crosstab, rowValues, rowTotals } = crosstabData;
+    const currentSort = sortColumn[rowVar];
+    
+    // Determine new sort direction
+    let newDirection;
+    if (currentSort && currentSort.column === column) {
+      // Cycle through: desc → asc → none
+      if (currentSort.direction === 'desc') {
+        newDirection = 'asc';
+      } else {
+        newDirection = null; // Clear sort
+      }
+    } else {
+      newDirection = 'desc'; // Default to descending
+    }
+    
+    if (!newDirection) {
+      // Clear sort for this crosstab
+      const updated = { ...sortColumn };
+      delete updated[rowVar];
+      setSortColumn(updated);
+      return;
+    }
+    
+    // Sort rowValues by the selected column's percentage
+    const sortedValues = [...rowValues].sort((a, b) => {
+      const aPercentage = rowTotals[a] > 0 ? (crosstab[a][column] / rowTotals[a]) * 100 : 0;
+      const bPercentage = rowTotals[b] > 0 ? (crosstab[b][column] / rowTotals[b]) * 100 : 0;
+      
+      if (newDirection === 'desc') {
+        return bPercentage - aPercentage;
+      } else {
+        return aPercentage - bPercentage;
+      }
+    });
+    
+    // Update sort state and apply to row orders
+    setSortColumn({
+      ...sortColumn,
+      [rowVar]: { column, direction: newDirection }
+    });
+    
+    setRowOrders({
+      ...rowOrders,
+      [rowVar]: sortedValues
+    });
+  };
+
+  const handleColDragStart = (e, colValue) => {
+    setDraggedCol({ value: colValue });
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleColDragOver = (e) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleColDrop = (e, targetValue) => {
+    e.preventDefault();
+    if (!draggedCol) return;
+
+    const currentOrder = colOrders[colVar] || [];
+    const fromValue = draggedCol.value;
+    const toValue = targetValue;
+
+    if (fromValue === toValue) {
+      setDraggedCol(null);
+      return;
+    }
+
+    const fromIndex = currentOrder.indexOf(fromValue);
+    const toIndex = currentOrder.indexOf(toValue);
+
+    let newOrder = [...currentOrder];
+    
+    if (fromIndex !== -1 && toIndex !== -1) {
+      [newOrder[fromIndex], newOrder[toIndex]] = [newOrder[toIndex], newOrder[fromIndex]];
+    } else if (fromIndex !== -1) {
+      newOrder = newOrder.filter(v => v !== fromValue);
+      const insertIndex = currentOrder.findIndex(v => v === toValue);
+      newOrder.splice(insertIndex >= 0 ? insertIndex : newOrder.length, 0, fromValue);
+    } else if (toIndex !== -1) {
+      newOrder.splice(toIndex, 0, fromValue);
+    } else {
+      newOrder = [fromValue, toValue];
+    }
+
+    setColOrders({
+      ...colOrders,
+      [colVar]: newOrder
+    });
+    setDraggedCol(null);
+  };
+
+  const getOrderedColValues = (colValues) => {
+    const customOrder = colOrders[colVar];
+    if (!customOrder || customOrder.length === 0) return colValues;
+
+    const ordered = customOrder.filter(v => colValues.includes(v));
+    const unordered = colValues.filter(v => !customOrder.includes(v));
+    
+    return [...ordered, ...unordered];
+  };
+
+  const exportToExcel = (crosstabData) => {
+    const orderedColValues = getOrderedColValues(crosstabData.colValues);
+    const orderedRowValues = getOrderedRowValues(crosstabData.rowValues, crosstabData.rowVar);
+    
+    // Create CSV content
+    let csv = '';
+    
+    // Header row
+    csv += `"${getColumnLabel(crosstabData.rowVar)} \\ ${getColumnLabel(colVar)}"`;
+    orderedColValues.forEach(cv => {
+      csv += `,"${cv}"`;
+    });
+    csv += ',"Total"\n';
+    
+    // Data rows
+    orderedRowValues.forEach(rv => {
+      csv += `"${rv}"`;
+      orderedColValues.forEach(cv => {
+        const count = crosstabData.crosstab[rv][cv];
+        if (percentageOnly) {
+          csv += `,"${formatPercentage(count, crosstabData.rowTotals[rv])}"`;
+        } else {
+          const pct = formatPercentage(count, crosstabData.rowTotals[rv]);
+          csv += `,"${count} (${pct})"`;
+        }
+      });
+      csv += `,"${crosstabData.rowTotals[rv]}"\n`;
+    });
+    
+    // Total row
+    csv += '"Total"';
+    orderedColValues.forEach(cv => {
+      csv += `,"${crosstabData.colTotals[cv]}"`;
+    });
+    csv += `,"${crosstabData.grandTotal}"\n`;
+    
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `crosstab_${getColumnLabel(crosstabData.rowVar)}_${getColumnLabel(colVar)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const exportSelectedCrosstabs = () => {
+    if (selectedForExport.size === 0) return;
+
+    const selectedTabs = crosstabsData.filter(ct => selectedForExport.has(ct.rowVar));
+    
+    if (selectedTabs.length === 1) {
+      exportToExcel(selectedTabs[0]);
+      return;
+    }
+
+    // Export multiple crosstabs in one file
+    let csv = '';
+    
+    selectedTabs.forEach((crosstabData, index) => {
+      const orderedColValues = getOrderedColValues(crosstabData.colValues);
+      const orderedRowValues = getOrderedRowValues(crosstabData.rowValues, crosstabData.rowVar);
+      
+      // Add title
+      csv += `"Crosstab: ${getColumnLabel(crosstabData.rowVar)} x ${getColumnLabel(colVar)}"\n`;
+      
+      // Header row
+      csv += `"${getColumnLabel(crosstabData.rowVar)} \\ ${getColumnLabel(colVar)}"`;
+      orderedColValues.forEach(cv => {
+        csv += `,"${cv}"`;
+      });
+      csv += ',"Total"\n';
+      
+      // Data rows
+      orderedRowValues.forEach(rv => {
+        csv += `"${rv}"`;
+        orderedColValues.forEach(cv => {
+          const count = crosstabData.crosstab[rv][cv];
+          if (percentageOnly) {
+            csv += `,"${formatPercentage(count, crosstabData.rowTotals[rv])}"`;
+          } else {
+            const pct = formatPercentage(count, crosstabData.rowTotals[rv]);
+            csv += `,"${count} (${pct})"`;
+          }
+        });
+        csv += `,"${crosstabData.rowTotals[rv]}"\n`;
+      });
+      
+      // Total row
+      csv += '"Total"';
+      orderedColValues.forEach(cv => {
+        csv += `,"${crosstabData.colTotals[cv]}"`;
+      });
+      csv += `,"${crosstabData.grandTotal}"\n`;
+      
+      // Add spacing between tables
+      if (index < selectedTabs.length - 1) {
+        csv += '\n\n';
+      }
+    });
+    
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `crosstabs_export_${getColumnLabel(colVar)}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const toggleExportSelection = (rowVar) => {
+    const newSelected = new Set(selectedForExport);
+    if (newSelected.has(rowVar)) {
+      newSelected.delete(rowVar);
+    } else {
+      newSelected.add(rowVar);
+    }
+    setSelectedForExport(newSelected);
+  };
+
+  const selectAllForExport = () => {
+    const allRowVars = crosstabsData.map(ct => ct.rowVar);
+    setSelectedForExport(new Set(allRowVars));
+  };
+
+  const deselectAllForExport = () => {
+    setSelectedForExport(new Set());
+  };
+
+  // Project Management Functions
+  const loadDemoData = () => {
+    // Parse demo CSV
+    parseCSV(DEMO_CSV_DATA);
+    
+    // Set up example crosstabs
+    setTimeout(() => {
+      setRowVars(['Ice Cream Purchase Frequency', 'Topping Preference', 'Cone Or Cup']);
+      setColVar('Region');
+      setShowTopline(false);
+    }, 100);
+  };
+
+  const loadSavedProjects = () => {
+    try {
+      const projects = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('easycrosstabs_project:')) {
+          const data = localStorage.getItem(key);
+          if (data) {
+            // Try to decompress (new format), fallback to JSON parse (old format)
+            let project;
+            try {
+              const decompressed = LZString.decompress(data);
+              project = JSON.parse(decompressed);
+            } catch (e) {
+              // Fallback for old uncompressed projects
+              project = JSON.parse(data);
+            }
+            projects.push({ id: key, ...project });
+          }
+        }
+      }
+      setSavedProjects(projects);
+    } catch (error) {
+      console.log('No saved projects found');
+      setSavedProjects([]);
+    }
+  };
+
+  const saveCurrentProject = (projectName) => {
+    if (!projectName.trim()) {
+      alert('Please enter a project name');
+      return;
+    }
+
+    const projectData = {
+      name: projectName,
+      savedAt: new Date().toISOString(),
+      data: {
+        surveyData,
+        columns,
+        rowVars,
+        colVar,
+        groupings,
+        columnLabels,
+        rowOrders,
+        colOrders,
+        hiddenRowValues: Array.from(hiddenRowValues),
+        hiddenColValues: Array.from(hiddenColValues),
+        sortColumn,
+        percentageOnly,
+        decimals,
+        darkMode
+      }
+    };
+
+    try {
+      const projectId = `easycrosstabs_project:${Date.now()}`;
+      const jsonString = JSON.stringify(projectData);
+      const compressed = LZString.compress(jsonString);
+      localStorage.setItem(projectId, compressed);
+      setCurrentProjectName(projectName);
+      
+      // Show size comparison
+      const originalSize = (jsonString.length / 1024).toFixed(2);
+      const compressedSize = (compressed.length / 1024).toFixed(2);
+      const savings = (((jsonString.length - compressed.length) / jsonString.length) * 100).toFixed(0);
+      
+      alert(`Project "${projectName}" saved successfully!\n\nOriginal: ${originalSize} KB\nCompressed: ${compressedSize} KB\nSavings: ${savings}%`);
+      loadSavedProjects();
+    } catch (error) {
+      alert('Error saving project: ' + error.message);
+    }
+  };
+
+  const loadProject = (projectId) => {
+    try {
+      const data = localStorage.getItem(projectId);
+      if (data) {
+        // Try to decompress (new format), fallback to JSON parse (old format)
+        let project;
+        try {
+          const decompressed = LZString.decompress(data);
+          project = JSON.parse(decompressed);
+        } catch (e) {
+          // Fallback for old uncompressed projects
+          project = JSON.parse(data);
+        }
+        
+        const projectData = project.data;
+        
+        // Restore all state
+        setSurveyData(projectData.surveyData);
+        setColumns(projectData.columns);
+        setRowVars(projectData.rowVars);
+        setColVar(projectData.colVar);
+        setGroupings(projectData.groupings);
+        setColumnLabels(projectData.columnLabels);
+        setRowOrders(projectData.rowOrders);
+        setColOrders(projectData.colOrders);
+        setHiddenRowValues(new Set(projectData.hiddenRowValues));
+        setHiddenColValues(new Set(projectData.hiddenColValues || []));
+        setSortColumn(projectData.sortColumn || {});
+        setPercentageOnly(projectData.percentageOnly);
+        setDecimals(projectData.decimals);
+        setDarkMode(projectData.darkMode);
+        setCurrentProjectName(project.name);
+        
+        setShowProjectModal(false);
+        alert(`Project "${project.name}" loaded successfully!`);
+      }
+    } catch (error) {
+      alert('Error loading project: ' + error.message);
+    }
+  };
+
+  const deleteProject = (projectId) => {
+    if (!confirm('Are you sure you want to delete this project?')) {
+      return;
+    }
+
+    try {
+      localStorage.removeItem(projectId);
+      loadSavedProjects();
+      alert('Project deleted successfully!');
+    } catch (error) {
+      alert('Error deleting project: ' + error.message);
+    }
+  };
+
+  const getColumnLabel = (col) => {
+    return columnLabels[col] || col;
+  };
+
+  const updateColumnLabel = (col, newLabel) => {
+    setColumnLabels({
+      ...columnLabels,
+      [col]: newLabel
+    });
+    setEditingColumn(null);
+  };
+
+  const getUniqueValues = (variable) => {
+    return [...new Set(surveyData.map(d => d[variable]).filter(v => v))];
+  };
+
+  const openGroupModal = (variable) => {
+    setGroupingVariable(variable);
+    const uniqueVals = getUniqueValues(variable);
+    
+    // Load existing groupings or create empty structure
+    if (groupings[variable]) {
+      setTempGroups(groupings[variable]);
+    } else {
+      setTempGroups([]);
+    }
+    
+    setShowGroupModal(true);
+  };
+
+  const addGroup = () => {
+    setTempGroups([...tempGroups, { name: '', values: [] }]);
+  };
+
+  const updateGroupName = (idx, name) => {
+    const updated = [...tempGroups];
+    updated[idx].name = name;
+    setTempGroups(updated);
+  };
+
+  const toggleValue = (groupIdx, value) => {
+    const updated = [...tempGroups];
+    const valueIdx = updated[groupIdx].values.indexOf(value);
+    
+    if (valueIdx > -1) {
+      updated[groupIdx].values.splice(valueIdx, 1);
+    } else {
+      // Remove from other groups first
+      updated.forEach(g => {
+        const idx = g.values.indexOf(value);
+        if (idx > -1) g.values.splice(idx, 1);
+      });
+      updated[groupIdx].values.push(value);
+    }
+    
+    setTempGroups(updated);
+  };
+
+  const saveGroupings = () => {
+    const validGroups = tempGroups.filter(g => g.name && g.values.length > 0);
+    setGroupings({
+      ...groupings,
+      [groupingVariable]: validGroups
+    });
+    setShowGroupModal(false);
+  };
+
+  const clearGroupings = (variable) => {
+    const updated = { ...groupings };
+    delete updated[variable];
+    setGroupings(updated);
+  };
+
+  const removeGroup = (idx) => {
+    const updated = [...tempGroups];
+    updated.splice(idx, 1);
+    setTempGroups(updated);
+  };
+
+  // Get ALL column values (including hidden ones) for the hide columns modal
+  const getAllColumnValues = () => {
+    if (!colVar || surveyData.length === 0) return [];
+    const allColValues = [];
+    const seen = new Set();
+    surveyData.forEach(row => {
+      const cv = applyGrouping(row[colVar], colVar);
+      if (cv && !seen.has(cv)) {
+        allColValues.push(cv);
+        seen.add(cv);
+      }
+    });
+    return allColValues;
+  };
+
+  const generateCrosstabs = () => {
+    if (rowVars.length === 0 || !colVar || surveyData.length === 0) return [];
+
+    return rowVars.map(rowVar => {
+      const crosstab = {};
+      const rowTotals = {};
+      const colTotals = {};
+      let grandTotal = 0;
+
+      // Collect unique values for this specific row variable
+      const rowValues = [];
+      const seenRows = new Set();
+      
+      surveyData.forEach(row => {
+        const rv = applyGrouping(row[rowVar], rowVar);
+        if (rv && !seenRows.has(rv) && !hiddenRowValues.has(rv)) {
+          rowValues.push(rv);
+          seenRows.add(rv);
+        }
+      });
+
+      // Apply smart auto-sorting if no custom order exists
+      let sortedRowValues = rowValues;
+      if (!rowOrders[rowVar] || rowOrders[rowVar].length === 0) {
+        sortedRowValues = detectAndSortScale(rowValues);
+      }
+
+      // Collect column values
+      const colValues = [];
+      const seenCols = new Set();
+      surveyData.forEach(row => {
+        const cv = applyGrouping(row[colVar], colVar);
+        if (cv && !seenCols.has(cv) && !hiddenColValues.has(cv)) {
+          colValues.push(cv);
+          seenCols.add(cv);
+        }
+      });
+
+      // Initialize crosstab
+      sortedRowValues.forEach(rv => {
+        crosstab[rv] = {};
+        rowTotals[rv] = 0;
+        colValues.forEach(cv => {
+          crosstab[rv][cv] = 0;
+        });
+      });
+
+      colValues.forEach(cv => {
+        colTotals[cv] = 0;
+      });
+
+      // Count occurrences for this row variable
+      surveyData.forEach(row => {
+        const rv = applyGrouping(row[rowVar], rowVar);
+        const cv = applyGrouping(row[colVar], colVar);
+        if (rv && cv && !hiddenRowValues.has(rv) && !hiddenColValues.has(cv)) {
+          crosstab[rv][cv]++;
+          rowTotals[rv]++;
+          colTotals[cv]++;
+          grandTotal++;
+        }
+      });
+
+      return { 
+        rowVar,
+        crosstab, 
+        rowValues: sortedRowValues,  // Use sorted values
+        colValues, 
+        rowTotals, 
+        colTotals, 
+        grandTotal 
+      };
+    });
+  };
+
+  const generateTopline = () => {
+    if (rowVars.length === 0 || surveyData.length === 0) return [];
+
+    return rowVars.map(rowVar => {
+      const frequencies = {};
+      let total = 0;
+
+      // Count frequencies for this variable
+      surveyData.forEach(row => {
+        const value = applyGrouping(row[rowVar], rowVar);
+        if (value && !hiddenRowValues.has(value)) {
+          frequencies[value] = (frequencies[value] || 0) + 1;
+          total++;
+        }
+      });
+
+      // Sort by frequency (descending) and maintain order
+      const sortedValues = Object.keys(frequencies).sort((a, b) => frequencies[b] - frequencies[a]);
+
+      return {
+        rowVar,
+        frequencies,
+        values: sortedValues,
+        total
+      };
+    });
+  };
+
+  const crosstabsData = generateCrosstabs();
+  const toplineData = generateTopline();
+
+  return (
+    <div className={`min-h-screen p-6 ${darkMode ? 'bg-gray-900' : 'bg-gradient-to-br from-cyan-500 to-blue-600'}`}>
+      <div className="max-w-6xl mx-auto">
+        <div className="flex justify-between items-start gap-6 mb-8">
+          {/* Upload section - left side */}
+          <div className={`rounded-xl shadow-2xl p-4 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            {IS_DEMO_VERSION ? (
+              // Demo version - upload disabled
+              <div className={`border-2 border-dashed rounded-lg p-6 text-center ${
+                darkMode ? 'border-cyan-500 bg-gray-700' : 'border-cyan-500 bg-cyan-50'
+              }`}>
+                <div className="mb-3">🎮</div>
+                <div className={`font-bold text-lg mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Interactive Demo
+                </div>
+                <div className={`text-sm mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  Exploring with sample ice cream survey data (500 responses)
+                </div>
+                <div className={`text-xs ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  To upload your own CSV files, get the full version
+                </div>
+              </div>
+            ) : (
+              // Full version - normal upload
+              <label className={`flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-4 cursor-pointer transition-all ${
+                darkMode 
+                  ? 'border-cyan-500 hover:border-cyan-400 hover:bg-gray-700' 
+                  : 'border-cyan-500 hover:border-cyan-600 hover:bg-cyan-50'
+              }`}>
+                {/* Custom EasyCrosstabs favicon icon */}
+                <svg width="48" height="48" viewBox="0 0 32 32" className="mb-2">
+                  <defs>
+                    <linearGradient id="gradEC" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" style={{stopColor: '#06b6d4', stopOpacity: 1}} />
+                      <stop offset="100%" style={{stopColor: '#22d3ee', stopOpacity: 1}} />
+                    </linearGradient>
+                  </defs>
+                  
+                  <rect width="32" height="32" fill={darkMode ? '#374151' : '#f3f4f6'} rx="6"/>
+                  
+                  {/* Subtle grid lines */}
+                  <line x1="16" y1="4" x2="16" y2="28" stroke="#06b6d4" strokeWidth="1" opacity="0.3"/>
+                  <line x1="4" y1="16" x2="28" y2="16" stroke="#06b6d4" strokeWidth="1" opacity="0.3"/>
+                  
+                  {/* Letter E (left, bold) */}
+                  <path d="M 6 8 L 13 8 L 13 10 L 8 10 L 8 14 L 12 14 L 12 16 L 8 16 L 8 22 L 13 22 L 13 24 L 6 24 Z" 
+                        fill="#06b6d4"/>
+                  
+                  {/* Letter C (right, bold) */}
+                  <path d="M 26 8 L 19 8 L 19 24 L 26 24 L 26 22 L 21 22 L 21 10 L 26 10 Z" 
+                        fill="#22d3ee"/>
+                  
+                  {/* Bright center intersection point */}
+                  <circle cx="16" cy="16" r="2" fill="url(#gradEC)"/>
+                  <circle cx="16" cy="16" r="0.8" fill="white"/>
+                </svg>
+                <div className={`text-sm font-semibold text-center ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Upload CSV
+                </div>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+              </label>
+            )}
+            
+            {/* Try Demo Button */}
+            {surveyData.length === 0 && (
+              <div className="mt-3 text-center">
+                <div className={`text-xs mb-2 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  OR
+                </div>
+                <button
+                  onClick={loadDemoData}
+                  className={`w-full px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                    darkMode
+                      ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-500 hover:to-cyan-600 text-gray-900'
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white'
+                  }`}
+                >
+                  🍦 Try Demo Data
+                </button>
+                <div className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-600'}`}>
+                  500 ice cream survey responses
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Title - center */}
+          <div className="flex-1 text-center text-white">
+            <h1 className="text-4xl font-bold mb-2">EasyCrosstabs Analysis Platform</h1>
+            <p className="text-lg opacity-90 font-semibold">Simple Tool, Complex Insights</p>
+            <p className="text-sm opacity-75 mt-1 italic">Instantly create crosstabs and uncover actionable insights...without the bloat</p>
+          </div>
+
+          {/* Dark mode toggle and project buttons - right */}
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={() => setDarkMode(!darkMode)}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                darkMode 
+                  ? 'bg-cyan-500 text-gray-900 hover:bg-cyan-400' 
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              {darkMode ? '☀️ Light' : '🌙 Dark'}
+            </button>
+            
+            {surveyData.length > 0 && (
+              <button
+                onClick={() => {
+                  const name = prompt('Enter a name for this project:', currentProjectName || 'My Analysis');
+                  if (name) saveCurrentProject(name);
+                }}
+                className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                  darkMode
+                    ? 'bg-cyan-600 text-gray-900 hover:bg-cyan-500'
+                    : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+                }`}
+              >
+                💾 Save Project
+              </button>
+            )}
+            
+            <button
+              onClick={() => {
+                loadSavedProjects();
+                setShowProjectModal(true);
+              }}
+              className={`px-4 py-2 rounded-lg font-semibold transition-all ${
+                darkMode
+                  ? 'bg-cyan-600 text-gray-900 hover:bg-cyan-500'
+                  : 'bg-white bg-opacity-20 text-white hover:bg-opacity-30'
+              }`}
+            >
+              📂 Projects
+            </button>
+          </div>
+        </div>
+
+        {/* Instructions when no data */}
+        {surveyData.length === 0 && (
+          <div className={`rounded-xl shadow-2xl p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <h2 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+              Getting Started
+            </h2>
+            <div className={`space-y-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+              <p className="flex items-start gap-3">
+                <span className="text-2xl">1️⃣</span>
+                <span><strong>Format: </strong> Ensure your data is in a labeled format with column names (e.g., "Q1", "Gender", "Age Group") in the first row.</span>
+              </p>
+              <p className="flex items-start gap-3">
+                <span className="text-2xl">2️⃣</span>
+                <span><strong>Upload your CSV file</strong> using the upload button on the top left. Your CSV should have column headers as the first row.</span>
+              </p>
+              <p className="flex items-start gap-3">
+                <span className="text-2xl">3️⃣</span>
+                <span><strong>Select variables: </strong> Choose row and column variables to generate crosstabs and analyze your survey data.</span>
+              </p>
+              <p className="flex items-start gap-3">
+                <span className="text-2xl">4️⃣</span>
+                <span><strong>Customize: </strong> Edit column names, group responses, hide rows, reorder results, and generate visualizations.</span>
+              </p>
+              <p className="flex items-start gap-3">
+                <span className="text-2xl">5️⃣</span>
+                <span><strong>Export: </strong> Select crosstabs using the green checkboxes and click the Export button to download your analysis to Excel/CSV format.</span>
+              </p>
+            </div>
+            {/* Created by Zach Capers */}
+            <div className={`text-xs mt-6 text-center ${
+              darkMode ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+              Find the latest version at easycrosstabs.com
+            </div>
+            <div className={`text-xs mt-2 text-center ${
+              darkMode ? 'text-gray-500' : 'text-gray-400'
+            }`}>
+              © 2026 EasyCrosstabs. All rights reserved.
+            </div>
+          </div>
+        )}
+
+        {surveyData.length > 0 && (
+          <div className={`rounded-xl shadow-2xl p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
+            <div className="grid grid-cols-4 gap-4 mb-8">
+              <div className={`p-6 rounded-lg text-center ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-cyan-600 to-cyan-700 text-gray-900' 
+                  : 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white'
+              }`}>
+                <div className="text-3xl font-bold">{surveyData.length}</div>
+                <div className="text-sm opacity-90">Total Responses</div>
+              </div>
+              <div className={`p-6 rounded-lg text-center ${
+                darkMode 
+                  ? 'bg-gradient-to-br from-cyan-600 to-cyan-700 text-gray-900' 
+                  : 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white'
+              }`}>
+                <div className="text-3xl font-bold">{columns.length}</div>
+                <div className="text-sm opacity-90">Questions</div>
+              </div>
+              <button
+                onClick={() => setPercentageOnly(!percentageOnly)}
+                className={`p-6 rounded-lg text-center hover:shadow-lg transition-all cursor-pointer ${
+                  darkMode 
+                    ? 'bg-gradient-to-br from-cyan-600 to-cyan-700 text-gray-900' 
+                    : 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white'
+                }`}>
+                <div className="text-2xl font-bold mb-1">
+                  {percentageOnly ? '%' : '# & %'}
+                </div>
+                <div className="text-sm opacity-90">
+                  {percentageOnly ? 'Percentages Only' : 'Count & Percentages'}
+                </div>
+              </button>
+              <button
+                onClick={() => setDecimals((decimals + 1) % 3)}
+                className={`p-6 rounded-lg text-center hover:shadow-lg transition-all cursor-pointer ${
+                  darkMode 
+                    ? 'bg-gradient-to-br from-cyan-600 to-cyan-700 text-gray-900' 
+                    : 'bg-gradient-to-br from-cyan-500 to-blue-600 text-white'
+                }`}>
+                <div className="text-2xl font-bold mb-1">
+                  {decimals === 0 ? '0' : decimals === 1 ? '0.0' : '0.00'}
+                </div>
+                <div className="text-sm opacity-90">
+                  {decimals === 0 ? 'Whole Numbers' : decimals === 1 ? 'One Decimal' : 'Two Decimals'}
+                </div>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-2 gap-6 mb-8">
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className={`block font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                    Row Variable (Question)
+                  </label>
+                  <div className="flex gap-2">
+                    {rowVars.length > 0 && (
+                      <button
+                        onClick={() => setShowTopline(!showTopline)}
+                        className={`text-sm px-3 py-1 rounded ${
+                          darkMode
+                            ? 'bg-cyan-600 hover:bg-cyan-500 text-gray-900'
+                            : 'bg-indigo-100 hover:bg-indigo-200 text-indigo-700'
+                        }`}
+                      >
+                        {showTopline ? '📊 Show Crosstabs' : '📋 Show Topline'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="relative" ref={rowSelectorRef}>
+                  <button
+                    onClick={() => setShowRowSelector(!showRowSelector)}
+                    className={`w-full p-3 border-2 rounded-lg focus:outline-none text-left flex justify-between items-center ${
+                      darkMode
+                        ? 'border-gray-600 bg-gray-700 text-white focus:border-cyan-500'
+                        : 'border-gray-300 bg-white focus:border-cyan-500'
+                    }`}
+                  >
+                    <span className={rowVars.length === 0 ? 'text-gray-400' : ''}>
+                      {getRowVarLabel()}
+                    </span>
+                    <span>{showRowSelector ? '▲' : '▼'}</span>
+                  </button>
+                  
+                  {showRowSelector && (
+                    <div className={`absolute z-10 w-full mt-1 border-2 rounded-lg shadow-lg max-h-60 overflow-y-auto ${
+                      darkMode
+                        ? 'bg-gray-700 border-cyan-500'
+                        : 'bg-white border-cyan-500'
+                    }`}>
+                      {/* Select All / Deselect All buttons */}
+                      <div className={`sticky top-0 flex gap-2 p-2 border-b ${
+                        darkMode 
+                          ? 'bg-gray-700 border-gray-600' 
+                          : 'bg-gray-50 border-gray-200'
+                      }`}>
+                        <button
+                          onClick={selectAllRowVars}
+                          className={`flex-1 px-3 py-1 text-xs rounded ${
+                            darkMode
+                              ? 'bg-cyan-600 hover:bg-cyan-500 text-gray-900'
+                              : 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                          }`}
+                        >
+                          Select All
+                        </button>
+                        <button
+                          onClick={deselectAllRowVars}
+                          className={`flex-1 px-3 py-1 text-xs rounded ${
+                            darkMode
+                              ? 'bg-gray-600 hover:bg-gray-500 text-white'
+                              : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
+                          }`}
+                        >
+                          Deselect All
+                        </button>
+                      </div>
+                      {columns.map(col => (
+                        <label
+                          key={col}
+                          className={`flex items-center justify-between p-3 cursor-pointer ${
+                            darkMode ? 'hover:bg-gray-600' : 'hover:bg-cyan-50'
+                          }`}
+                        >
+                          <div className="flex items-center flex-1">
+                            <input
+                              type="checkbox"
+                              checked={rowVars.includes(col)}
+                              onChange={() => toggleRowVar(col)}
+                              className="mr-3 w-4 h-4"
+                            />
+                            <span className={darkMode ? 'text-white' : 'text-gray-900'}>
+                              {getColumnLabel(col)}
+                            </span>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              setEditingColumn(col);
+                            }}
+                            className={`text-xs px-2 py-1 rounded ml-2 ${
+                              darkMode
+                                ? 'bg-gray-600 hover:bg-gray-500 text-cyan-400'
+                                : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-700'
+                            }`}
+                          >
+                            ✏️
+                          </button>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {rowVars.length > 0 && (
+                  <div className={`mt-2 text-sm ${darkMode ? 'text-cyan-400' : 'text-cyan-600'}`}>
+                    {rowVars.length} question{rowVars.length > 1 ? 's' : ''} selected
+                    {rowVars.length > 1 && (
+                      <span className={darkMode ? 'text-gray-400' : 'text-gray-500'}>
+                        {' '}(Combined for "select all that apply")
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-2">
+                  <label className={`block font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                    Column Variable (Cross by)
+                  </label>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openGroupModal(colVar)}
+                      className={`text-sm px-3 py-1 rounded ${
+                        darkMode
+                          ? 'bg-cyan-600 hover:bg-cyan-500 text-gray-900'
+                          : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-700'
+                      }`}
+                      disabled={!colVar}
+                    >
+                      {groupings[colVar] ? '➕ Add Groups' : '➕ Add Groups'}
+                    </button>
+                    {colVar && crosstabsData.length > 0 && (
+                      <button
+                        onClick={() => setShowHideColModal(true)}
+                        className={`text-sm px-3 py-1 rounded ${
+                          darkMode
+                            ? 'bg-gray-700 hover:bg-gray-600 text-cyan-400 border border-gray-600'
+                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300'
+                        }`}
+                      >
+                        Hide Columns
+                      </button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="relative" ref={colSelectorRef}>
+                  <button
+                    onClick={() => setShowColSelector(!showColSelector)}
+                    className={`w-full p-3 border-2 rounded-lg focus:outline-none text-left flex justify-between items-center ${
+                      darkMode
+                        ? 'border-gray-600 bg-gray-700 text-white focus:border-cyan-500'
+                        : 'border-gray-300 bg-white focus:border-cyan-500'
+                    }`}
+                  >
+                    <span className={!colVar ? 'text-gray-400' : ''}>
+                      {colVar || 'Select a column variable...'}
+                    </span>
+                    <span>{showColSelector ? '▲' : '▼'}</span>
+                  </button>
+                  
+                  {showColSelector && (
+                    <div className={`absolute z-10 w-full mt-1 border-2 rounded-lg shadow-lg max-h-60 overflow-y-auto ${
+                      darkMode
+                        ? 'bg-gray-700 border-cyan-500'
+                        : 'bg-white border-cyan-500'
+                    }`}>
+                      {columns.map(col => (
+                        <div
+                          key={col}
+                          className={`flex items-center justify-between p-3 ${
+                            darkMode
+                              ? `hover:bg-gray-600 ${colVar === col ? 'bg-gray-600 font-semibold' : ''}`
+                              : `hover:bg-cyan-50 ${colVar === col ? 'bg-cyan-100 font-semibold' : ''}`
+                          }`}
+                        >
+                          <button
+                            onClick={() => {
+                              setColVar(col);
+                              setShowColSelector(false);
+                            }}
+                            className={`flex-1 text-left ${darkMode ? 'text-white' : 'text-gray-900'}`}
+                          >
+                            {getColumnLabel(col)}
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingColumn(col);
+                            }}
+                            className={`text-xs px-2 py-1 rounded ml-2 ${
+                              darkMode
+                                ? 'bg-gray-600 hover:bg-gray-500 text-cyan-400'
+                                : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-700'
+                            }`}
+                          >
+                            ✏️
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
+                {groupings[colVar] && (
+                  <div className="mt-2 text-sm">
+                    <span className={`font-semibold ${darkMode ? 'text-cyan-400' : 'text-cyan-600'}`}>
+                      {groupings[colVar].length} group(s) active
+                    </span>
+                    <button
+                      onClick={() => clearGroupings(colVar)}
+                      className="ml-2 text-red-600 hover:text-red-800"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {showTopline && toplineData.length > 0 && toplineData.map((topline, idx) => (
+              <div key={topline.rowVar} className="mt-8">
+                <h3 className={`text-2xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Topline: {getColumnLabel(topline.rowVar)}
+                </h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse shadow-lg">
+                    <thead>
+                      <tr className={darkMode 
+                        ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-gray-900' 
+                        : 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
+                      }>
+                        <th className="p-3 text-left">Response</th>
+                        <th className="p-3 text-center">Count</th>
+                        <th className="p-3 text-center">Percentage</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getOrderedRowValues(topline.values, topline.rowVar).map(value => {
+                        const count = topline.frequencies[value];
+                        return (
+                          <tr 
+                            key={value} 
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, value, topline.rowVar)}
+                            onDragOver={handleDragOver}
+                            onDrop={(e) => handleDrop(e, value, topline.rowVar)}
+                            className={`border-b cursor-move ${
+                              darkMode 
+                                ? 'hover:bg-gray-700 border-gray-600' 
+                                : 'hover:bg-cyan-50 border-gray-200'
+                            } ${draggedRow?.value === value ? 'opacity-50' : ''}`}
+                          >
+                            <td className={`p-3 font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              <div className="flex items-center gap-2">
+                                <span className="text-gray-500 cursor-grab">⋮⋮</span>
+                                <span>{value}</span>
+                              </div>
+                            </td>
+                            <td className={`p-3 text-center ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                              <span className={count <= 30 ? 'text-red-600 font-bold' : ''}>
+                                {count}
+                              </span>
+                            </td>
+                            <td className="p-3 text-center">
+                              <span className={`font-semibold ${darkMode ? 'text-cyan-400' : 'text-cyan-600'}`}>
+                                {formatPercentage(count, topline.total)}
+                              </span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      <tr className={`font-bold ${
+                        darkMode ? 'bg-gray-700 text-white' : 'bg-cyan-100 text-gray-900'
+                      }`}>
+                        <td className="p-3">Total</td>
+                        <td className="p-3 text-center">{topline.total}</td>
+                        <td className="p-3 text-center">100%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+
+            {!showTopline && crosstabsData.length > 0 && (
+              <div className={`mt-8 mb-4 flex justify-between items-center p-4 rounded-lg ${
+                darkMode ? 'bg-gray-700' : 'bg-cyan-50'
+              }`}>
+                <div className={`font-semibold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  {selectedForExport.size} of {crosstabsData.length} crosstab{crosstabsData.length > 1 ? 's' : ''} selected for export
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={selectAllForExport}
+                    className={`px-4 py-2 text-sm rounded-lg ${
+                      darkMode
+                        ? 'bg-cyan-600 hover:bg-cyan-500 text-gray-900'
+                        : 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                    }`}
+                  >
+                    ✓ Select All
+                  </button>
+                  <button
+                    onClick={deselectAllForExport}
+                    className={`px-4 py-2 text-sm rounded-lg ${
+                      darkMode
+                        ? 'bg-gray-600 hover:bg-gray-500 text-white'
+                        : 'bg-gray-300 hover:bg-gray-400 text-gray-700'
+                    }`}
+                  >
+                    ✕ Deselect All
+                  </button>
+                  <button
+                    onClick={exportSelectedCrosstabs}
+                    disabled={selectedForExport.size === 0}
+                    className={`px-4 py-2 text-sm rounded-lg font-semibold transition-all flex items-center gap-2 ${
+                      selectedForExport.size === 0
+                        ? 'bg-gray-400 text-gray-200 cursor-not-allowed'
+                        : 'bg-green-600 text-white hover:bg-green-500'
+                    }`}
+                  >
+                    📥 Export ({selectedForExport.size})
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {!showTopline && crosstabsData.length > 0 && crosstabsData.map((crosstabData, idx) => (
+              <div key={crosstabData.rowVar} className="mt-8">
+                <div className="flex justify-between items-start mb-4 gap-4">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    <input
+                      type="checkbox"
+                      checked={selectedForExport.has(crosstabData.rowVar)}
+                      onChange={() => toggleExportSelection(crosstabData.rowVar)}
+                      className="w-5 h-5 accent-green-600 cursor-pointer flex-shrink-0 mt-1"
+                      title="Select for export"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`text-2xl font-bold break-words ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        Crosstab: {getColumnLabel(crosstabData.rowVar)} × {getColumnLabel(colVar)}
+                      </h3>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => openGroupModal(crosstabData.rowVar)}
+                      className={`text-sm px-3 py-1 rounded whitespace-nowrap ${
+                        darkMode
+                          ? 'bg-cyan-600 hover:bg-cyan-500 text-gray-900'
+                          : 'bg-cyan-100 hover:bg-cyan-200 text-cyan-700'
+                      }`}
+                      title="Group response values for this question"
+                    >
+                      ➕ Add Groups
+                    </button>
+                    <button
+                      onClick={() => setShowChart(showChart === idx ? -1 : idx)}
+                      className={`px-4 py-2 rounded-lg hover:shadow-lg flex items-center gap-2 whitespace-nowrap ${
+                        darkMode
+                          ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-gray-900'
+                          : 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
+                      }`}
+                    >
+                      {showChart === idx ? '📊 Hide Chart' : '📈 Generate Chart'}
+                    </button>
+                  </div>
+                </div>
+
+                {showChart === idx && (
+                  <div className={`mb-6 p-6 rounded-lg ${darkMode ? 'bg-gray-700' : 'bg-gray-50'}`}>
+                    <div className="flex gap-4 items-center mb-4">
+                      <label className={`font-semibold ${darkMode ? 'text-gray-200' : 'text-gray-700'}`}>
+                        Chart Type:
+                      </label>
+                      <select
+                        value={chartType}
+                        onChange={(e) => setChartType(e.target.value)}
+                        className={`p-2 border-2 rounded focus:outline-none ${
+                          darkMode
+                            ? 'border-gray-600 bg-gray-600 text-white focus:border-cyan-500'
+                            : 'border-gray-300 bg-white focus:border-cyan-500'
+                        }`}
+                      >
+                        <option value="bar">Grouped Bar (Vertical)</option>
+                        <option value="barh">Grouped Bar (Horizontal)</option>
+                        <option value="stacked">Stacked Bar (Vertical)</option>
+                        <option value="stackedh">Stacked Bar (Horizontal)</option>
+                        <option value="heatmap">Heatmap</option>
+                      </select>
+                    </div>
+                    <ChartDisplay 
+                      crosstabData={crosstabData} 
+                      rowVar={crosstabData.rowVar} 
+                      colVar={colVar}
+                      chartType={chartType}
+                      darkMode={darkMode}
+                    />
+                  </div>
+                )}
+
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse shadow-lg">
+                    <thead>
+                      <tr className={darkMode 
+                        ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 text-gray-900' 
+                        : 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white'
+                      }>
+                        <th className="p-3 text-left">
+                          {getColumnLabel(crosstabData.rowVar)} \ {getColumnLabel(colVar)}
+                        </th>
+                        {getOrderedColValues(crosstabData.colValues).map(cv => {
+                          const currentSort = sortColumn[crosstabData.rowVar];
+                          const isActive = currentSort && currentSort.column === cv;
+                          const sortIndicator = isActive 
+                            ? (currentSort.direction === 'desc' ? ' ▼' : ' ▲')
+                            : '';
+                          
+                          return (
+                            <th 
+                              key={cv} 
+                              className={`p-3 text-center ${draggedCol?.value === cv ? 'opacity-50' : ''}`}
+                              style={{ cursor: 'move' }}
+                              draggable
+                              onDragStart={(e) => handleColDragStart(e, cv)}
+                              onDragOver={handleColDragOver}
+                              onDrop={(e) => handleColDrop(e, cv)}
+                            >
+                              <div className="flex flex-col items-center gap-1">
+                                <div className="flex items-center gap-1">
+                                  <span className="opacity-60 text-xs">⋮⋮</span>
+                                  <span 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleColumnSort(crosstabData.rowVar, cv, crosstabData);
+                                    }}
+                                    className="cursor-pointer hover:underline"
+                                    title="Click to sort by this column"
+                                  >
+                                    {cv}{sortIndicator}
+                                  </span>
+                                </div>
+                              </div>
+                            </th>
+                          );
+                        })}
+                        <th 
+                          className="p-3 text-center cursor-pointer hover:underline"
+                          onClick={() => {
+                            const currentSort = sortColumn[crosstabData.rowVar];
+                            let newDirection;
+                            
+                            if (currentSort && currentSort.column === 'Total') {
+                              newDirection = currentSort.direction === 'desc' ? 'asc' : null;
+                            } else {
+                              newDirection = 'desc';
+                            }
+                            
+                            if (!newDirection) {
+                              const updated = { ...sortColumn };
+                              delete updated[crosstabData.rowVar];
+                              setSortColumn(updated);
+                              return;
+                            }
+                            
+                            const sortedValues = [...crosstabData.rowValues].sort((a, b) => {
+                              if (newDirection === 'desc') {
+                                return crosstabData.rowTotals[b] - crosstabData.rowTotals[a];
+                              } else {
+                                return crosstabData.rowTotals[a] - crosstabData.rowTotals[b];
+                              }
+                            });
+                            
+                            setSortColumn({
+                              ...sortColumn,
+                              [crosstabData.rowVar]: { column: 'Total', direction: newDirection }
+                            });
+                            
+                            setRowOrders({
+                              ...rowOrders,
+                              [crosstabData.rowVar]: sortedValues
+                            });
+                          }}
+                          title="Click to sort by total count"
+                        >
+                          Total{sortColumn[crosstabData.rowVar]?.column === 'Total' 
+                            ? (sortColumn[crosstabData.rowVar].direction === 'desc' ? ' ▼' : ' ▲')
+                            : ''}
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {getOrderedRowValues(crosstabData.rowValues, crosstabData.rowVar).map(rv => (
+                        <tr 
+                          key={rv} 
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, rv, crosstabData.rowVar)}
+                          onDragOver={handleDragOver}
+                          onDrop={(e) => handleDrop(e, rv, crosstabData.rowVar)}
+                          className={`border-b cursor-move ${
+                            darkMode 
+                              ? 'hover:bg-gray-700 border-gray-600' 
+                              : 'hover:bg-cyan-50 border-gray-200'
+                          } ${draggedRow?.value === rv ? 'opacity-50' : ''}`}
+                        >
+                          <td className={`p-3 font-semibold flex items-center justify-between ${
+                            darkMode ? 'text-white' : 'text-gray-900'
+                          }`}>
+                            <div className="flex items-center gap-2">
+                              <span className="text-gray-500 cursor-grab">⋮⋮</span>
+                              <span>{rv}</span>
+                            </div>
+                            <button
+                              onClick={() => toggleHideRowValue(rv)}
+                              className={`text-xs px-2 py-1 rounded ${
+                                darkMode
+                                  ? 'text-gray-400 hover:text-red-400 hover:bg-gray-600'
+                                  : 'text-gray-500 hover:text-red-600 hover:bg-red-50'
+                              }`}
+                              title="Hide this row"
+                            >
+                              ✕ Hide
+                            </button>
+                          </td>
+                          {getOrderedColValues(crosstabData.colValues).map(cv => {
+                            const count = crosstabData.crosstab[rv][cv];
+                            return (
+                              <td key={cv} className={`p-3 text-center ${darkMode ? 'text-gray-200' : 'text-gray-900'}`}>
+                                {percentageOnly ? (
+                                  <span className={`font-semibold ${
+                                    darkMode ? 'text-cyan-400' : 'text-cyan-600'
+                                  }`}>
+                                    {formatPercentage(count, crosstabData.rowTotals[rv])}
+                                  </span>
+                                ) : (
+                                  <>
+                                    {count}
+                                    <span className={`font-semibold ml-2 ${
+                                      darkMode ? 'text-cyan-400' : 'text-cyan-600'
+                                    }`}>
+                                      ({formatPercentage(count, crosstabData.rowTotals[rv])})
+                                    </span>
+                                  </>
+                                )}
+                              </td>
+                            );
+                          })}
+                          <td className="p-3 font-bold text-center">
+                            <span className={crosstabData.rowTotals[rv] <= 30 ? 'text-red-600' : (darkMode ? 'text-white' : '')}>
+                              {crosstabData.rowTotals[rv]}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                      <tr className={`font-bold ${
+                        darkMode ? 'bg-gray-700 text-white' : 'bg-cyan-100 text-gray-900'
+                      }`}>
+                        <td className="p-3">Total</td>
+                        {getOrderedColValues(crosstabData.colValues).map(cv => (
+                          <td key={cv} className="p-3 text-center">{crosstabData.colTotals[cv]}</td>
+                        ))}
+                        <td className="p-3 text-center">{crosstabData.grandTotal}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            ))}
+
+            {hiddenRowValues.size > 0 && (
+              <div className={`mt-4 p-4 border-2 rounded-lg ${
+                darkMode
+                  ? 'bg-gray-700 border-cyan-500'
+                  : 'bg-yellow-50 border-yellow-200'
+              }`}>
+                <div className="flex justify-between items-center mb-2">
+                  <span className={`font-semibold ${
+                    darkMode ? 'text-cyan-400' : 'text-yellow-800'
+                  }`}>
+                    {hiddenRowValues.size} row{hiddenRowValues.size > 1 ? 's' : ''} hidden
+                  </span>
+                  <button
+                    onClick={() => setHiddenRowValues(new Set())}
+                    className={`text-sm underline ${
+                      darkMode
+                        ? 'text-cyan-400 hover:text-cyan-300'
+                        : 'text-yellow-700 hover:text-yellow-900'
+                    }`}
+                  >
+                    Show all
+                  </button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {Array.from(hiddenRowValues).map(rv => (
+                    <button
+                      key={rv}
+                      onClick={() => toggleHideRowValue(rv)}
+                      className={`px-3 py-1 border rounded text-sm flex items-center gap-2 ${
+                        darkMode
+                          ? 'bg-gray-600 border-cyan-500 text-white hover:bg-gray-500'
+                          : 'bg-white border-yellow-300 hover:bg-yellow-100'
+                      }`}
+                    >
+                      {rv}
+                      <span className={darkMode ? 'text-cyan-400' : 'text-green-600'}>↻ Show</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Help link when data is loaded */}
+        {surveyData.length > 0 && (
+          <div className="text-center mt-6">
+            <button
+              onClick={() => setShowHelpModal(true)}
+              className={`text-sm underline ${
+                darkMode ? 'text-cyan-400 hover:text-cyan-300' : 'text-white hover:text-purple-100'
+              }`}
+            >
+              Need help? View Getting Started guide
+            </button>
+            {/* Created by Zach Capers */}
+            <div className={`text-xs mt-2 ${
+              darkMode ? 'text-gray-400' : 'text-white opacity-80'
+            }`}>
+              Find the latest version at easycrosstabs.com
+            </div>
+            <div className={`text-xs mt-1 ${
+              darkMode ? 'text-gray-500' : 'text-white opacity-60'
+            }`}>
+              © 2026 EasyCrosstabs. All rights reserved.
+            </div>
+          </div>
+        )}
+
+        {/* Help Modal */}
+        {showHelpModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className={`rounded-xl shadow-2xl max-w-2xl w-full ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <div className={`p-6 border-b flex justify-between items-center ${
+                darkMode ? 'border-gray-700' : 'border-gray-200'
+              }`}>
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Getting Started
+                </h2>
+                <button
+                  onClick={() => setShowHelpModal(false)}
+                  className={`text-2xl w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 ${
+                    darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600'
+                  }`}
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="p-6">
+                <div className={`space-y-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                  <p className="flex items-start gap-3">
+                    <span className="text-2xl">1️⃣</span>
+                    <span><strong>Format: </strong> Ensure your data is in a labeled format with column names (e.g., "Q1", "Gender", "Age Group") in the first row.</span>
+                  </p>
+                  <p className="flex items-start gap-3">
+                    <span className="text-2xl">2️⃣</span>
+                    <span><strong>Upload your CSV file</strong> using the upload button on the top left. Your CSV should have column headers as the first row.</span>
+                  </p>
+                  <p className="flex items-start gap-3">
+                    <span className="text-2xl">3️⃣</span>
+                    <span><strong>Select variables: </strong> Choose row and column variables to generate crosstabs and analyze your survey data.</span>
+                  </p>
+                  <p className="flex items-start gap-3">
+                    <span className="text-2xl">4️⃣</span>
+                    <span><strong>Customize: </strong> Edit column names, group responses, hide rows, reorder results, and generate visualizations.</span>
+                  </p>
+                  <p className="flex items-start gap-3">
+                    <span className="text-2xl">5️⃣</span>
+                    <span><strong>Export: </strong> Select crosstabs using the green checkboxes and click the Export button to download your analysis to Excel/CSV format.</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {editingColumn && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className={`rounded-xl shadow-2xl max-w-md w-full ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <div className={`p-6 border-b ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Edit Column Name
+                </h2>
+                <p className={`mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                  Original: {editingColumn}
+                </p>
+              </div>
+              
+              <div className="p-6">
+                <input
+                  type="text"
+                  defaultValue={getColumnLabel(editingColumn)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      updateColumnLabel(editingColumn, e.target.value);
+                    } else if (e.key === 'Escape') {
+                      setEditingColumn(null);
+                    }
+                  }}
+                  className={`w-full p-3 border-2 rounded-lg focus:outline-none ${
+                    darkMode
+                      ? 'bg-gray-700 border-gray-600 text-white focus:border-cyan-500'
+                      : 'bg-white border-gray-300 focus:border-cyan-500'
+                  }`}
+                  placeholder="Enter new label..."
+                  autoFocus
+                />
+              </div>
+
+              <div className={`p-6 border-t flex gap-3 justify-end ${
+                darkMode ? 'border-gray-700' : 'border-gray-200'
+              }`}>
+                <button
+                  onClick={() => setEditingColumn(null)}
+                  className={`px-6 py-2 border-2 rounded-lg ${
+                    darkMode
+                      ? 'border-gray-600 text-gray-300 hover:bg-gray-700'
+                      : 'border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={(e) => {
+                    const input = e.target.closest('.z-50').querySelector('input');
+                    updateColumnLabel(editingColumn, input.value);
+                  }}
+                  className={`px-6 py-2 rounded-lg text-white ${
+                    darkMode
+                      ? 'bg-gradient-to-r from-cyan-600 to-cyan-700 hover:shadow-lg'
+                      : 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:shadow-lg'
+                  }`}
+                >
+                  Save
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {showGroupModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+              <div className="p-6 border-b border-gray-200">
+                <h2 className="text-2xl font-bold">Group Responses: {groupingVariable}</h2>
+                <p className="text-gray-600 mt-1">Combine similar responses into custom groups</p>
+              </div>
+              
+              <div className="p-6">
+                {tempGroups.map((group, groupIdx) => (
+                  <div key={groupIdx} className="mb-6 p-4 border-2 border-gray-200 rounded-lg">
+                    <div className="flex gap-2 mb-3">
+                      <input
+                        type="text"
+                        placeholder="Group name (e.g., 'Yes', 'Positive')"
+                        value={group.name}
+                        onChange={(e) => updateGroupName(groupIdx, e.target.value)}
+                        className="flex-1 p-2 border-2 border-gray-300 rounded focus:border-cyan-500 focus:outline-none"
+                      />
+                      <button
+                        onClick={() => removeGroup(groupIdx)}
+                        className="px-3 py-2 bg-red-100 text-red-700 rounded hover:bg-red-200"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {getUniqueValues(groupingVariable).map(val => (
+                        <button
+                          key={val}
+                          onClick={() => toggleValue(groupIdx, val)}
+                          className={`px-3 py-1 rounded text-sm ${
+                            group.values.includes(val)
+                              ? 'bg-cyan-600 text-white'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          }`}
+                        >
+                          {val}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+                
+                <button
+                  onClick={addGroup}
+                  className="w-full p-3 border-2 border-dashed border-purple-300 rounded-lg text-cyan-600 hover:border-cyan-500 hover:bg-cyan-50"
+                >
+                  ➕ Add New Group
+                </button>
+              </div>
+
+              <div className="p-6 border-t border-gray-200 flex gap-3 justify-end">
+                <button
+                  onClick={() => setShowGroupModal(false)}
+                  className="px-6 py-2 border-2 border-gray-300 rounded-lg hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={saveGroupings}
+                  className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-lg hover:shadow-lg"
+                >
+                  Apply Groups
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Project Manager Modal */}
+        {showProjectModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className={`rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto ${
+              darkMode ? 'bg-gray-800' : 'bg-white'
+            }`}>
+              <div className={`p-6 border-b flex justify-between items-center ${
+                darkMode ? 'border-gray-700' : 'border-gray-200'
+              }`}>
+                <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                  Saved Projects
+                </h2>
+                <button
+                  onClick={() => setShowProjectModal(false)}
+                  className={`text-2xl w-8 h-8 flex items-center justify-center rounded hover:bg-gray-200 ${
+                    darkMode ? 'text-gray-400 hover:bg-gray-700' : 'text-gray-600'
+                  }`}
+                >
+                  ✕
+                </button>
+              </div>
+              
+              <div className="p-6">
+                {savedProjects.length === 0 ? (
+                  <div className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                    <p className="text-lg mb-2">No saved projects yet</p>
+                    <p className="text-sm">Upload a CSV and click "Save Project" to get started</p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {savedProjects.map(project => (
+                      <div 
+                        key={project.id} 
+                        className={`p-4 border-2 rounded-lg ${
+                          darkMode 
+                            ? 'border-gray-600 bg-gray-700' 
+                            : 'border-gray-200 bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <div className="flex-1">
+                            <h3 className={`text-lg font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                              {project.name}
+                            </h3>
+                            <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                              Saved: {new Date(project.savedAt).toLocaleString()}
+                            </p>
+                            <p className={`text-xs mt-1 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                              {project.data.surveyData.length} responses • {project.data.columns.length} questions
+                            </p>
+                          </div>
+                          <div className="flex gap-2 ml-4">
+                            <button
+                              onClick={() => loadProject(project.id)}
+                              className={`px-4 py-2 rounded-lg font-semibold ${
+                                darkMode
+                                  ? 'bg-cyan-600 hover:bg-cyan-500 text-gray-900'
+                                  : 'bg-cyan-600 hover:bg-cyan-700 text-white'
+                              }`}
+                            >
+                              Load
+                            </button>
+                            <button
+                              onClick={() => deleteProject(project.id)}
+                              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+      
+      {/* Hide Columns Modal */}
+      {showHideColModal && colVar && crosstabsData.length > 0 && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className={`rounded-xl shadow-2xl max-w-md w-full ${
+            darkMode ? 'bg-gray-800' : 'bg-white'
+          }`}>
+            <div className={`p-6 border-b ${
+              darkMode ? 'border-gray-700' : 'border-gray-200'
+            }`}>
+              <h2 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Show/Hide Columns
+              </h2>
+              <p className={`mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                Select which columns to display
+              </p>
+            </div>
+            
+            <div className="p-6 max-h-96 overflow-y-auto">
+              <div className="space-y-2">
+                {getAllColumnValues().map(cv => (
+                  <label 
+                    key={cv}
+                    className={`flex items-center p-3 rounded cursor-pointer ${
+                      darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    }`}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={!hiddenColValues.has(cv)}
+                      onChange={() => toggleHiddenColValue(cv)}
+                      className="mr-3 w-5 h-5"
+                    />
+                    <span className={`text-base ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                      {cv}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className={`p-6 border-t flex gap-3 justify-end ${
+              darkMode ? 'border-gray-700' : 'border-gray-200'
+            }`}>
+              <button
+                onClick={() => setShowHideColModal(false)}
+                className={`px-6 py-2 rounded-lg ${
+                  darkMode 
+                    ? 'bg-gray-700 hover:bg-gray-600 text-white' 
+                    : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                }`}
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Demo Version Watermark */}
+      {IS_DEMO_VERSION && (
+        <div className="fixed bottom-6 right-6 bg-gradient-to-r from-cyan-600 to-blue-600 text-white px-6 py-3 rounded-lg shadow-2xl z-50">
+          <div className="flex items-center gap-3">
+            <div>
+              <div className="text-sm font-bold">🎮 Demo Version</div>
+              <div className="text-xs opacity-90">Try before you buy!</div>
+            </div>
+            <a 
+              href="https://www.easycrosstabs.com" 
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white text-cyan-600 px-4 py-2 rounded-lg font-semibold text-sm hover:bg-gray-100 transition-all"
+            >
+              Get Full Version - $99
+            </a>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<SurveyAnalyzer />);
+  </script>
+</body>
+</html>
